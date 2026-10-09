@@ -1,0 +1,1124 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#ffffff">
+<meta name="description" content="CampusNotes - Your College Learning Hub">
+<title>CampusNotes | Your College Learning Hub</title>
+
+<style>
+:root {
+    --primary: #315efb;
+    --primary-dark: #2148d8;
+    --dark: #172033;
+    --text: #657086;
+    --light: #f5f7fc;
+    --border: #e7ebf3;
+    --white: #ffffff;
+    --shadow: 0 15px 40px rgba(35,57,100,.09);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 85px;
+}
+
+body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    color: var(--dark);
+    line-height: 1.6;
+    background: var(--white);
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+.container {
+    width: min(1160px, 92%);
+    margin: auto;
+}
+
+.navbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(255,255,255,.96);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+}
+
+.nav-inner {
+    min-height: 76px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 23px;
+    font-weight: 800;
+    letter-spacing: -.7px;
+}
+
+.brand-icon {
+    width: 43px;
+    height: 43px;
+    display: grid;
+    place-items: center;
+    background: var(--primary);
+    color: white;
+    border-radius: 13px;
+    font-size: 23px;
+    box-shadow: 0 7px 17px rgba(49,94,251,.22);
+}
+
+.brand-name span {
+    color: var(--primary);
+}
+
+.nav-links {
+    display: flex;
+    gap: 26px;
+    align-items: center;
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.nav-links a:hover {
+    color: var(--primary);
+}
+
+.nav-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.btn {
+    min-height: 45px;
+    padding: 0 19px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: .2s ease;
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: white;
+    box-shadow: 0 7px 16px rgba(49,94,251,.16);
+}
+
+.btn-primary:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+}
+
+.btn-outline {
+    border-color: var(--border);
+    background: white;
+    color: var(--dark);
+}
+
+.btn-outline:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.menu-toggle {
+    display: none;
+    width: 42px;
+    height: 42px;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: white;
+    font-size: 22px;
+    cursor: pointer;
+}
+
+/* HERO */
+
+.hero {
+    padding: 80px 0;
+    overflow: hidden;
+    background:
+        radial-gradient(ellipse at 90% 10%, #e5ecff 0, transparent 35%),
+        radial-gradient(ellipse at 0% 100%, #f0f4ff 0, transparent 35%),
+        white;
+}
+
+.hero-grid {
+    display: grid;
+    grid-template-columns: 1.05fr .95fr;
+    align-items: center;
+    gap: 55px;
+}
+
+.eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 7px 13px;
+    border-radius: 30px;
+    background: #edf2ff;
+    color: var(--primary);
+    border: 1px solid #dce5ff;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: .5px;
+    text-transform: uppercase;
+}
+
+.dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--primary);
+}
+
+.hero h1 {
+    margin: 23px 0 18px;
+    max-width: 610px;
+    font-size: clamp(39px,5vw,61px);
+    line-height: 1.1;
+    letter-spacing: -2px;
+    font-weight: 800;
+}
+
+.hero h1 span {
+    color: var(--primary);
+}
+
+.hero-description {
+    max-width: 530px;
+    color: var(--text);
+    font-size: 16px;
+    line-height: 1.9;
+}
+
+.hero-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 29px;
+}
+
+.hero-note {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-top: 23px;
+    color: var(--text);
+    font-size: 13px;
+}
+
+.check {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 21px;
+    height: 21px;
+    border-radius: 50%;
+    color: #16885c;
+    background: #dff8ec;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+/* Dashboard preview */
+
+.preview-wrap {
+    padding: 13px;
+    border: 1px solid #e5eaf5;
+    border-radius: 24px;
+    background: rgba(255,255,255,.85);
+    box-shadow: 0 25px 60px rgba(35,57,100,.13);
+    transform: rotate(1deg);
+}
+
+.preview {
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: white;
+    transform: rotate(-1deg);
+}
+
+.preview-top {
+    padding: 17px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+}
+
+.preview-brand {
+    font-size: 15px;
+    font-weight: 800;
+}
+
+.preview-brand span {
+    color: var(--primary);
+}
+
+.avatar {
+    display: grid;
+    place-items: center;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    background: #eaf0ff;
+    color: var(--primary);
+    font-weight: 800;
+}
+
+.preview-content {
+    padding: 23px;
+}
+
+.preview-heading {
+    font-size: 21px;
+    font-weight: 800;
+}
+
+.preview-subtitle {
+    margin-top: 4px;
+    color: var(--text);
+    font-size: 12px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2,1fr);
+    gap: 12px;
+    margin-top: 22px;
+}
+
+.stat-card {
+    padding: 17px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: white;
+}
+
+.stat-icon {
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+    font-size: 19px;
+}
+
+.blue-bg { background: #e9efff; }
+.green-bg { background: #e1f8ed; }
+
+.stat-card strong {
+    display: block;
+    font-size: 17px;
+}
+
+.stat-card small {
+    color: var(--text);
+    font-size: 11px;
+}
+
+.preview-section-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin: 23px 0 12px;
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.preview-section-title a {
+    color: var(--primary);
+    font-size: 11px;
+}
+
+.resource {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid #eef1f6;
+}
+
+.resource:last-child {
+    border-bottom: none;
+}
+
+.file-icon {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 42px;
+    height: 43px;
+    border-radius: 10px;
+    background: #fff0f1;
+    color: #e34d59;
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.resource-info {
+    min-width: 0;
+    flex: 1;
+}
+
+.resource-info strong {
+    display: block;
+    overflow: hidden;
+    font-size: 12px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.resource-info small {
+    color: var(--text);
+    font-size: 10px;
+}
+
+.resource-tag {
+    padding: 4px 7px;
+    border-radius: 6px;
+    color: #18845a;
+    background: #e4f8ed;
+    font-size: 10px;
+    font-weight: 800;
+}
+
+/* Sections */
+
+.section {
+    padding: 80px 0;
+}
+
+.section-light {
+    background: var(--light);
+}
+
+.section-heading {
+    max-width: 650px;
+    margin: 0 auto 42px;
+    text-align: center;
+}
+
+.section-label {
+    color: var(--primary);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+}
+
+.section-heading h2 {
+    margin: 10px 0 12px;
+    font-size: clamp(28px,4vw,39px);
+    line-height: 1.2;
+    letter-spacing: -1px;
+}
+
+.section-heading p {
+    color: var(--text);
+    font-size: 15px;
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(3,1fr);
+    gap: 21px;
+}
+
+.feature-card {
+    padding: 27px;
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    background: white;
+    transition: .25s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow);
+    border-color: #d4deff;
+}
+
+.feature-icon {
+    display: grid;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    margin-bottom: 19px;
+    border-radius: 15px;
+    background: #edf2ff;
+    font-size: 24px;
+}
+
+.feature-card h3 {
+    margin-bottom: 9px;
+    font-size: 18px;
+}
+
+.feature-card p {
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.8;
+}
+
+/* Student and Teacher Portals */
+
+.portals-grid {
+    display: grid;
+    grid-template-columns: repeat(2,1fr);
+    gap: 24px;
+}
+
+.portal-card {
+    padding: 34px;
+    border: 1px solid var(--border);
+    border-radius: 21px;
+    background: white;
+    box-shadow: 0 7px 25px rgba(35,57,100,.04);
+}
+
+.portal-card.student {
+    border-top: 4px solid var(--primary);
+}
+
+.portal-card.teacher {
+    border-top: 4px solid #19a477;
+}
+
+.portal-card h3 {
+    margin: 17px 0 9px;
+    font-size: 25px;
+}
+
+.portal-card p {
+    color: var(--text);
+    font-size: 14px;
+}
+
+.portal-card ul {
+    display: grid;
+    gap: 11px;
+    margin: 22px 0 25px;
+    list-style: none;
+    color: #414c61;
+    font-size: 14px;
+}
+
+.portal-card li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.portal-card .btn {
+    width: 100%;
+}
+
+.teacher-btn {
+    background: #16885c;
+    color: white;
+}
+
+.teacher-btn:hover {
+    background: #11734d;
+}
+
+.register-note {
+    margin-top: 15px;
+    text-align: center;
+    font-size: 13px !important;
+}
+
+.register-note a {
+    color: var(--primary);
+    font-weight: 700;
+}
+
+/* How it works */
+
+.steps-grid {
+    display: grid;
+    grid-template-columns: repeat(3,1fr);
+    gap: 25px;
+}
+
+.step {
+    padding: 10px 18px;
+    text-align: center;
+}
+
+.step-number {
+    display: grid;
+    place-items: center;
+    width: 57px;
+    height: 57px;
+    margin: 0 auto 17px;
+    border-radius: 17px;
+    background: #eaf0ff;
+    color: var(--primary);
+    font-size: 20px;
+    font-weight: 800;
+}
+
+.step h3 {
+    margin-bottom: 8px;
+    font-size: 17px;
+}
+
+.step p {
+    color: var(--text);
+    font-size: 14px;
+}
+
+/* CTA */
+
+.cta {
+    padding: 62px 0;
+    background: var(--primary);
+    color: white;
+}
+
+.cta-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 25px;
+}
+
+.cta h2 {
+    margin-bottom: 9px;
+    font-size: clamp(25px,3vw,35px);
+    line-height: 1.25;
+}
+
+.cta p {
+    max-width: 600px;
+    color: #e3eaff;
+    font-size: 14px;
+}
+
+.btn-white {
+    flex-shrink: 0;
+    background: white;
+    color: var(--primary);
+}
+
+.btn-white:hover {
+    background: #f0f4ff;
+    transform: translateY(-2px);
+}
+
+/* Footer */
+
+footer {
+    padding: 32px 0;
+    background: #121a2b;
+    color: white;
+}
+
+.footer-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 18px;
+}
+
+.footer-brand {
+    font-size: 19px;
+    font-weight: 800;
+}
+
+.footer-brand span {
+    color: #82a0ff;
+}
+
+.footer-copy {
+    color: #aab4c7;
+    font-size: 12px;
+}
+
+.footer-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 17px;
+    color: #d2d9e7;
+    font-size: 12px;
+}
+
+.footer-links a:hover {
+    color: white;
+}
+
+/* Responsive */
+
+@media (max-width: 960px) {
+    .nav-links { gap: 15px; }
+    .hero-grid { gap: 30px; }
+    .hero { padding: 60px 0; }
+    .hero h1 { font-size: 45px; }
+    .features-grid { grid-template-columns: repeat(2,1fr); }
+}
+
+@media (max-width: 760px) {
+    .nav-inner { min-height: 68px; }
+
+    .menu-toggle { display: block; }
+
+    .nav-links {
+        display: none;
+        position: absolute;
+        top: 68px;
+        left: 0;
+        right: 0;
+        padding: 18px 5%;
+        background: white;
+        border-bottom: 1px solid var(--border);
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0;
+    }
+
+    .nav-links.open { display: flex; }
+    .nav-links a { padding: 12px 0; }
+    .nav-actions .btn-outline { display: none; }
+    .nav-actions .btn { min-height: 40px; padding: 0 12px; font-size: 12px; }
+    .brand { font-size: 19px; gap: 8px; }
+    .brand-icon { width: 38px; height: 38px; }
+
+    .hero-grid { grid-template-columns: 1fr; }
+    .hero { padding: 52px 0; }
+    .hero h1 { font-size: clamp(38px,9vw,53px); }
+    .hero-description { font-size: 15px; }
+    .preview-wrap { max-width: 540px; margin: 12px auto 0; }
+
+    .section { padding: 62px 0; }
+    .portals-grid { grid-template-columns: 1fr; }
+    .cta-inner { align-items: flex-start; flex-direction: column; }
+    .footer-inner { flex-direction: column; align-items: flex-start; }
+}
+
+@media (max-width: 480px) {
+    .hero-buttons .btn { width: 100%; }
+    .features-grid { grid-template-columns: 1fr; }
+    .feature-card { padding: 23px; }
+    .portal-card { padding: 25px; }
+    .steps-grid { grid-template-columns: 1fr; gap: 28px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        scroll-behavior: auto !important;
+        transition: none !important;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<header class="navbar">
+    <div class="container nav-inner">
+
+        <a href="/" class="brand" aria-label="CampusNotes Home">
+            <span class="brand-icon">C</span>
+            <span class="brand-name">Campus<span>Notes</span></span>
+        </a>
+
+        <nav class="nav-links" id="navLinks" aria-label="Main navigation">
+            <a href="#home">Home</a>
+            <a href="#features">Features</a>
+            <a href="#portals">Portals</a>
+            <a href="#how-it-works">How It Works</a>
+        </nav>
+
+        <div class="nav-actions">
+            <a href="/teacher-login.html" class="btn btn-outline">
+                Teacher Login
+            </a>
+            <a href="/student-login.html" class="btn btn-primary">
+                Student Login
+            </a>
+            <button class="menu-toggle" id="menuToggle"
+                    aria-label="Toggle navigation"
+                    aria-expanded="false"
+                    aria-controls="navLinks">☰</button>
+        </div>
+    </div>
+</header>
+
+<main>
+
+    <!-- Hero -->
+    <section class="hero" id="home">
+        <div class="container hero-grid">
+
+            <div>
+                <div class="eyebrow">
+                    <span class="dot"></span>
+                    Your College Learning Hub
+                </div>
+
+                <h1>
+                    Learn smarter.<br>
+                    Study <span>better.</span>
+                </h1>
+
+                <p class="hero-description">
+                    One place for your college notes and quizzes.
+                    Keep your study material organised by course,
+                    branch and semester with CampusNotes.
+                </p>
+
+                <div class="hero-buttons">
+                    <a href="/student-register.html" class="btn btn-primary">
+                        Get Started →
+                    </a>
+                    <a href="#features" class="btn btn-outline">
+                        Explore Features
+                    </a>
+                </div>
+
+                <div class="hero-note">
+                    <span class="check">✓</span>
+                    A dedicated learning space for students and teachers.
+                </div>
+            </div>
+
+            <!-- Illustrative preview -->
+            <div class="preview-wrap">
+                <div class="preview">
+
+                    <div class="preview-top">
+                        <div class="preview-brand">
+                            Campus<span>Notes</span>
+                        </div>
+                        <div class="avatar">S</div>
+                    </div>
+
+                    <div class="preview-content">
+                        <h2 class="preview-heading">Your Learning Space</h2>
+                        <p class="preview-subtitle">
+                            Your college study space, organised.
+                        </p>
+
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-icon blue-bg">📚</div>
+                                <strong>Study Notes</strong>
+                                <small>Semester-wise PDFs</small>
+                            </div>
+
+                            <div class="stat-card">
+                                <div class="stat-icon green-bg">✓</div>
+                                <strong>MCQ Quiz</strong>
+                                <small>Practise and learn</small>
+                            </div>
+                        </div>
+
+                        <div class="preview-section-title">
+                            <span>Study Area</span>
+                            <a href="/student-login.html">Open portal →</a>
+                        </div>
+
+                        <div class="resource">
+                            <div class="file-icon">PDF</div>
+                            <div class="resource-info">
+                                <strong>Semester-wise Notes</strong>
+                                <small>Organised study material</small>
+                            </div>
+                            <span class="resource-tag">Notes</span>
+                        </div>
+
+                        <div class="resource">
+                            <div class="file-icon"
+                                 style="color:#315efb;background:#edf2ff">MCQ</div>
+                            <div class="resource-info">
+                                <strong>Practice Quizzes</strong>
+                                <small>Check your understanding</small>
+                            </div>
+                            <span class="resource-tag">Quiz</span>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Features -->
+    <section class="section" id="features">
+        <div class="container">
+
+            <div class="section-heading">
+                <div class="section-label">What You Get</div>
+                <h2>Everything you need to study better</h2>
+                <p>
+                    Useful learning tools brought together in a simple,
+                    organised college platform.
+                </p>
+            </div>
+
+            <div class="features-grid">
+
+                <article class="feature-card">
+                    <div class="feature-icon">📚</div>
+                    <h3>Semester-wise Notes</h3>
+                    <p>
+                        Find study material organised by course,
+                        branch, semester and subject.
+                    </p>
+                </article>
+
+                <article class="feature-card">
+                    <div class="feature-icon">📝</div>
+                    <h3>MCQ Quiz</h3>
+                    <p>
+                        Practise questions, check your understanding
+                        and review your quiz results.
+                    </p>
+                </article>
+
+                <article class="feature-card">
+                    <div class="feature-icon">📄</div>
+                    <h3>PDF Notes</h3>
+                    <p>
+                        Access available PDF notes through your
+                        student account.
+                    </p>
+                </article>
+
+                <article class="feature-card">
+                    <div class="feature-icon">👩‍🏫</div>
+                    <h3>Teacher Portal</h3>
+                    <p>
+                        A separate teacher workspace for managing
+                        study notes and quizzes.
+                    </p>
+                </article>
+
+                <article class="feature-card">
+                    <div class="feature-icon">🎯</div>
+                    <h3>Course-based Learning</h3>
+                    <p>
+                        Keep relevant study content organised for
+                        your selected course and semester.
+                    </p>
+                </article>
+
+                <article class="feature-card">
+                    <div class="feature-icon">💻</div>
+                    <h3>Easy Access</h3>
+                    <p>
+                        Use CampusNotes on a computer, tablet or
+                        mobile browser when the server is available.
+                    </p>
+                </article>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Portals -->
+    <section class="section section-light" id="portals">
+        <div class="container">
+
+            <div class="section-heading">
+                <div class="section-label">Choose Your Portal</div>
+                <h2>A dedicated space for everyone</h2>
+                <p>
+                    Choose the portal that matches your role.
+                </p>
+            </div>
+
+            <div class="portals-grid">
+
+                <article class="portal-card student">
+                    <div class="feature-icon">🎓</div>
+                    <h3>Student Portal</h3>
+                    <p>
+                        Your personal learning space for notes,
+                        PDFs and quizzes.
+                    </p>
+
+                    <ul>
+                        <li><span class="check">✓</span> Semester-wise study notes</li>
+                        <li><span class="check">✓</span> Available PDF materials</li>
+                        <li><span class="check">✓</span> MCQ quizzes and results</li>
+                        <li><span class="check">✓</span> Course-based learning</li>
+                    </ul>
+
+                    <a href="/student-login.html" class="btn btn-primary">
+                        Enter Student Portal →
+                    </a>
+
+                    <p class="register-note">
+                        New student?
+                        <a href="/student-register.html">Create an account</a>
+                    </p>
+                </article>
+
+                <article class="portal-card teacher">
+                    <div class="feature-icon" style="background:#e1f8ed">👩‍🏫</div>
+                    <h3>Teacher Portal</h3>
+                    <p>
+                        A dedicated workspace for teachers to manage
+                        learning material for students.
+                    </p>
+
+                    <ul>
+                        <li><span class="check">✓</span> Upload study PDFs</li>
+                        <li><span class="check">✓</span> Organise notes by semester</li>
+                        <li><span class="check">✓</span> Manage learning notes</li>
+                        <li><span class="check">✓</span> Create and manage quizzes</li>
+                    </ul>
+
+                    <a href="/teacher-login.html" class="btn teacher-btn">
+                        Enter Teacher Portal →
+                    </a>
+                </article>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- How it works -->
+    <section class="section" id="how-it-works">
+        <div class="container">
+
+            <div class="section-heading">
+                <div class="section-label">Simple Process</div>
+                <h2>Get started in three steps</h2>
+                <p>
+                    A simple way to reach your learning material.
+                </p>
+            </div>
+
+            <div class="steps-grid">
+
+                <article class="step">
+                    <div class="step-number">01</div>
+                    <h3>Create Your Account</h3>
+                    <p>
+                        Register and select your course,
+                        branch and semester.
+                    </p>
+                </article>
+
+                <article class="step">
+                    <div class="step-number">02</div>
+                    <h3>Sign In to Your Portal</h3>
+                    <p>
+                        Use the student or teacher login
+                        to access the correct portal.
+                    </p>
+                </article>
+
+                <article class="step">
+                    <div class="step-number">03</div>
+                    <h3>Start Learning</h3>
+                    <p>
+                        Explore the notes and quizzes
+                        available to your account.
+                    </p>
+                </article>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta">
+        <div class="container cta-inner">
+            <div>
+                <h2>Make your college learning more organised.</h2>
+                <p>
+                    Bring your notes and quizzes together
+                    in one convenient learning space.
+                </p>
+            </div>
+
+            <a href="/student-register.html" class="btn btn-white">
+                Get Started →
+            </a>
+        </div>
+    </section>
+
+</main>
+
+<footer>
+    <div class="container footer-inner">
+
+        <a href="/" class="footer-brand">
+            Campus<span>Notes</span>
+        </a>
+
+        <p class="footer-copy">
+            © <span id="currentYear"></span> CampusNotes. Your College Learning Hub.
+        </p>
+
+        <div class="footer-links">
+            <a href="#home">Home</a>
+            <a href="#features">Features</a>
+            <a href="/student-login.html">Student Login</a>
+            <a href="/teacher-login.html">Teacher Login</a>
+        </div>
+
+    </div>
+</footer>
+
+<script>
+const menuToggle = document.getElementById("menuToggle");
+const navLinks = document.getElementById("navLinks");
+
+menuToggle.addEventListener("click", function () {
+    const isOpen = navLinks.classList.toggle("open");
+    menuToggle.setAttribute("aria-expanded", String(isOpen));
+    menuToggle.textContent = isOpen ? "✕" : "☰";
+});
+
+navLinks.querySelectorAll("a").forEach(function (link) {
+    link.addEventListener("click", function () {
+        navLinks.classList.remove("open");
+        menuToggle.setAttribute("aria-expanded", "false");
+        menuToggle.textContent = "☰";
+    });
+});
+
+document.getElementById("currentYear").textContent =
+    new Date().getFullYear();
+</script>
+
+</body>
+</html>

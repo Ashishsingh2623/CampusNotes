@@ -1,0 +1,609 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Registration | CampusNotes</title>
+
+<style>
+:root {
+  --primary: #315efb;
+  --primary-dark: #2448d8;
+  --text: #172033;
+  --muted: #667085;
+  --border: #e1e7f0;
+  --surface: #ffffff;
+  --background: #f3f6fc;
+  --success: #067647;
+  --danger: #b42318;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  padding: 35px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: Inter, "Segoe UI", Arial, sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(circle at 12% 15%, #dfe8ff 0, transparent 28%),
+    radial-gradient(circle at 88% 85%, #e6eaff 0, transparent 30%),
+    var(--background);
+}
+
+.page {
+  width: 100%;
+  max-width: 1040px;
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  background: var(--surface);
+  border: 1px solid #e8edf5;
+  border-radius: 25px;
+  overflow: hidden;
+  box-shadow: 0 24px 70px rgba(23, 32, 51, 0.10);
+}
+
+.intro {
+  padding: 48px 38px;
+  color: white;
+  background: linear-gradient(145deg, #2448d8, #315efb 65%, #6685ff);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+}
+
+.intro::before,
+.intro::after {
+  content: "";
+  position: absolute;
+  border: 1px solid rgba(255,255,255,.15);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.intro::before {
+  width: 270px;
+  height: 270px;
+  right: -135px;
+  top: 100px;
+}
+
+.intro::after {
+  width: 190px;
+  height: 190px;
+  right: -95px;
+  top: 140px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+  z-index: 1;
+}
+
+.brand-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: rgba(255,255,255,.17);
+  border: 1px solid rgba(255,255,255,.25);
+  font-size: 23px;
+  font-weight: 800;
+}
+
+.brand-name {
+  font-size: 23px;
+  font-weight: 800;
+  letter-spacing: -.7px;
+}
+
+.brand-tag {
+  font-size: 10px;
+  letter-spacing: 1.7px;
+  margin-top: 4px;
+  opacity: .8;
+}
+
+.intro-content {
+  position: relative;
+  z-index: 1;
+  margin: 65px 0;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 30px;
+  background: rgba(255,255,255,.14);
+  border: 1px solid rgba(255,255,255,.2);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.intro h2 {
+  font-size: clamp(29px, 3vw, 39px);
+  line-height: 1.2;
+  letter-spacing: -1.2px;
+  margin: 24px 0 16px;
+}
+
+.intro-content > p {
+  font-size: 14px;
+  line-height: 1.8;
+  color: rgba(255,255,255,.82);
+  max-width: 330px;
+  margin: 0;
+}
+
+.benefits {
+  display: grid;
+  gap: 17px;
+  position: relative;
+  z-index: 1;
+}
+
+.benefit {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: rgba(255,255,255,.94);
+}
+
+.benefit-icon {
+  width: 35px;
+  height: 35px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: rgba(255,255,255,.14);
+  font-size: 16px;
+}
+
+.form-panel {
+  padding: 43px 42px 35px;
+  min-width: 0;
+}
+
+.form-heading {
+  margin-bottom: 28px;
+}
+
+.form-heading .mini-title {
+  color: var(--primary);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+}
+
+h1 {
+  font-size: 29px;
+  letter-spacing: -.8px;
+  margin: 10px 0 9px;
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--muted);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 16px;
+}
+
+.field {
+  min-width: 0;
+}
+
+.field.full {
+  grid-column: 1 / -1;
+}
+
+label {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  margin: 0 0 8px;
+  color: #344054;
+}
+
+input,
+select {
+  width: 100%;
+  min-height: 46px;
+  padding: 11px 13px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  outline: none;
+  background: #fff;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 14px;
+  transition: border-color .2s, box-shadow .2s;
+}
+
+input::placeholder {
+  color: #98a2b3;
+}
+
+input:hover,
+select:hover {
+  border-color: #b8c5db;
+}
+
+input:focus,
+select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(49,94,251,.12);
+}
+
+.field {
+  margin-bottom: 19px;
+}
+
+select:disabled {
+  background: #f7f8fb;
+  cursor: not-allowed;
+}
+
+.note {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+  margin: -8px 0 16px;
+}
+
+.hidden {
+  display: none !important;
+}
+
+button {
+  width: 100%;
+  min-height: 49px;
+  padding: 13px 18px;
+  margin-top: 3px;
+  border: 0;
+  border-radius: 11px;
+  color: white;
+  background: var(--primary);
+  font-size: 15px;
+  font-family: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 5px 12px rgba(49,94,251,.18);
+  transition: background .2s, transform .2s, box-shadow .2s;
+}
+
+button:hover {
+  background: var(--primary-dark);
+  box-shadow: 0 8px 18px rgba(49,94,251,.25);
+  transform: translateY(-1px);
+}
+
+button:disabled {
+  opacity: .65;
+  cursor: wait;
+  transform: none;
+  box-shadow: none;
+}
+
+.msg {
+  margin-top: 14px;
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.login {
+  border-top: 1px solid #edf0f6;
+  margin-top: 24px;
+  padding-top: 20px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+a {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 700;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+.security-note {
+  text-align: center;
+  color: #98a2b3;
+  font-size: 11px;
+  margin-top: 16px;
+}
+
+@media (max-width: 760px) {
+  body {
+    padding: 18px 12px;
+    align-items: flex-start;
+  }
+
+  .page {
+    max-width: 520px;
+    grid-template-columns: 1fr;
+    border-radius: 20px;
+  }
+
+  .intro {
+    padding: 25px 25px 27px;
+  }
+
+  .intro-content {
+    margin: 28px 0 24px;
+  }
+
+  .intro h2 {
+    font-size: 28px;
+    margin: 17px 0 10px;
+  }
+
+  .intro-content > p {
+    font-size: 13px;
+  }
+
+  .benefits {
+    gap: 10px;
+  }
+
+  .benefit-icon {
+    width: 31px;
+    height: 31px;
+  }
+
+  .form-panel {
+    padding: 30px 24px 27px;
+  }
+
+  h1 {
+    font-size: 26px;
+  }
+}
+
+@media (max-width: 400px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .field.full {
+    grid-column: auto;
+  }
+
+  .intro,
+  .form-panel {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+}
+</style>
+</head>
+
+<body>
+<main class="page">
+
+  <section class="intro">
+    <div class="brand">
+      <div class="brand-icon">C</div>
+      <div>
+        <div class="brand-name">CampusNotes</div>
+        <div class="brand-tag">COLLEGE LEARNING PLATFORM</div>
+      </div>
+    </div>
+
+    <div class="intro-content">
+      <span class="eyebrow">✦ Student Portal</span>
+      <h2>Your learning journey starts here.</h2>
+      <p>Create your student account to access notes organized for your course, branch and semester.</p>
+    </div>
+
+    <div class="benefits">
+      <div class="benefit">
+        <span class="benefit-icon">▤</span>
+        <span>Semester-wise study notes</span>
+      </div>
+      <div class="benefit">
+        <span class="benefit-icon">↗</span>
+        <span>Easy access to learning resources</span>
+      </div>
+      <div class="benefit">
+        <span class="benefit-icon">✓</span>
+        <span>Your course, your study space</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="form-panel">
+    <header class="form-heading">
+      <div class="mini-title">Get started</div>
+      <h1>Create student account</h1>
+      <p class="subtitle">Enter your details below to register with CampusNotes.</p>
+    </header>
+
+    <form id="registerForm">
+      <div class="form-grid">
+
+        <div class="field full">
+          <label for="name">Full name</label>
+          <input id="name" name="name" placeholder="Enter your full name"
+                 autocomplete="name" required>
+        </div>
+
+        <div class="field full">
+          <label for="email">Email address</label>
+          <input id="email" name="email" type="email"
+                 placeholder="you@example.com"
+                 autocomplete="email" required>
+        </div>
+
+        <div class="field full">
+          <label for="password">Password</label>
+          <input id="password" name="password" type="password"
+                 placeholder="Create a password (minimum 6 characters)"
+                 minlength="6" autocomplete="new-password" required>
+        </div>
+
+        <div class="field full">
+          <label for="course">Course</label>
+          <select id="course" name="course" required>
+            <option value="">Select course</option>
+            <option value="Diploma">Diploma</option>
+            <option value="BCA">BCA</option>
+            <option value="BBA">BBA</option>
+            <option value="B.Tech">B.Tech</option>
+          </select>
+        </div>
+
+        <div id="branchWrap" class="field full">
+          <label for="branch">Branch</label>
+          <select id="branch" name="branch">
+            <option value="">Select branch</option>
+            <option value="CSE">Computer Science (CSE)</option>
+            <option value="IT">Information Technology (IT)</option>
+            <option value="ECE">Electronics (ECE)</option>
+            <option value="EE">Electrical (EE)</option>
+            <option value="ME">Mechanical (ME)</option>
+            <option value="CE">Civil (CE)</option>
+          </select>
+        </div>
+
+        <p id="branchNote" class="note hidden field full">
+          Branch is not required for BCA and BBA.
+        </p>
+
+        <div class="field full">
+          <label for="semester">Semester</label>
+          <select id="semester" name="semester" required>
+            <option value="">Select semester</option>
+            <option value="1">Semester 1</option>
+            <option value="2">Semester 2</option>
+            <option value="3">Semester 3</option>
+            <option value="4">Semester 4</option>
+            <option value="5">Semester 5</option>
+            <option value="6">Semester 6</option>
+            <option value="7">Semester 7</option>
+            <option value="8">Semester 8</option>
+          </select>
+        </div>
+
+      </div>
+
+      <button id="submitBtn" type="submit">Create Account →</button>
+      <div id="message" class="msg" role="status" aria-live="polite"></div>
+    </form>
+
+    <div class="login">
+      Already registered? <a href="/student-login.html">Student Login</a>
+    </div>
+
+    <div class="security-note">CampusNotes · Student Registration</div>
+  </section>
+
+</main>
+
+<script>
+const courseSelect = document.getElementById("course");
+const branchWrap = document.getElementById("branchWrap");
+const branchSelect = document.getElementById("branch");
+const branchNote = document.getElementById("branchNote");
+const form = document.getElementById("registerForm");
+const message = document.getElementById("message");
+const submitBtn = document.getElementById("submitBtn");
+
+function updateBranchField() {
+  const course = courseSelect.value;
+  const branchRequired = course === "Diploma" || course === "B.Tech";
+
+  branchWrap.classList.toggle("hidden", !branchRequired);
+  branchNote.classList.toggle("hidden", branchRequired);
+
+  branchSelect.required = branchRequired;
+  branchSelect.disabled = !branchRequired;
+
+  if (!branchRequired) branchSelect.value = "";
+}
+
+courseSelect.addEventListener("change", updateBranchField);
+updateBranchField();
+
+form.addEventListener("submit", async event => {
+  event.preventDefault();
+  message.textContent = "";
+  message.style.color = "#b42318";
+  submitBtn.disabled = true;
+  submitBtn.textContent = "Creating account...";
+
+  const course = courseSelect.value;
+  const needsBranch = course === "Diploma" || course === "B.Tech";
+
+  const payload = {
+    name: document.getElementById("name").value.trim(),
+    email: document.getElementById("email").value.trim(),
+    password: document.getElementById("password").value,
+    course,
+    branch: needsBranch ? branchSelect.value : "",
+    semester: document.getElementById("semester").value
+  };
+
+  try {
+    const response = await fetch("/api/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Registration failed.");
+    }
+
+    message.style.color = "#067647";
+    message.textContent = data.message || "Registration successful.";
+
+    form.reset();
+    updateBranchField();
+
+    setTimeout(() => {
+      window.location.href = "/student-login.html";
+    }, 1200);
+
+  } catch (error) {
+    message.textContent = error.message ||
+      "Server connection failed. Start the server and try again.";
+
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = "Create Account →";
+  }
+});
+</script>
+</body>
+</html>

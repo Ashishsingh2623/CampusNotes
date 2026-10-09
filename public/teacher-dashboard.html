@@ -1,0 +1,1275 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f5f7fb">
+  <meta name="description" content="CampusNotes Teacher Dashboard — manage study notes and create student quizzes.">
+  <title>Teacher Dashboard | CampusNotes</title>
+
+  <style>
+    :root {
+      --blue: #315efb;
+      --blue-dark: #2449d8;
+      --blue-light: #edf2ff;
+      --dark: #172033;
+      --muted: #667085;
+      --line: #e6eaf2;
+      --bg: #f5f7fb;
+      --white: #ffffff;
+      --green: #067647;
+      --green-bg: #dcfae6;
+      --orange: #93370d;
+      --orange-bg: #fef0c7;
+      --red: #b42318;
+      --red-bg: #fff0f0;
+      --shadow: 0 4px 18px rgba(23, 32, 51, .045);
+      --radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: 95px;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--dark);
+      font-family: Inter, "Segoe UI", Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    button, input, select, textarea {
+      font: inherit;
+    }
+
+    button, a {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button:focus-visible, a:focus-visible {
+      outline: 3px solid #b7c7ff;
+      outline-offset: 3px;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: .65;
+    }
+
+    /* TOP BAR */
+
+    .topbar {
+      height: 72px;
+      background: var(--white);
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+      padding: 0 30px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 11px;
+      font-size: 22px;
+      font-weight: 850;
+      letter-spacing: -.7px;
+      white-space: nowrap;
+    }
+
+    .brand-icon {
+      width: 41px;
+      height: 41px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, #4775ff, #2449d8);
+      color: white;
+      border-radius: 13px;
+      box-shadow: 0 5px 12px rgba(49, 94, 251, .2);
+    }
+
+    .brand-notes {
+      color: var(--blue);
+    }
+
+    .top-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .avatar {
+      width: 38px;
+      height: 38px;
+      flex-shrink: 0;
+      border-radius: 50%;
+      background: var(--blue-light);
+      color: var(--blue);
+      display: grid;
+      place-items: center;
+      font-weight: 850;
+    }
+
+    /* BUTTONS */
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      border: 1px solid transparent;
+      border-radius: 9px;
+      padding: 10px 14px;
+      font-size: 12px;
+      font-weight: 750;
+      line-height: 1.4;
+      white-space: nowrap;
+      transition: background .18s, border-color .18s, transform .18s;
+    }
+
+    .btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+    }
+
+    .primary {
+      background: var(--blue);
+      color: white;
+    }
+
+    .primary:hover:not(:disabled) {
+      background: var(--blue-dark);
+    }
+
+    .secondary {
+      background: #f2f4f7;
+      border-color: #eaecf0;
+      color: #344054;
+    }
+
+    .secondary:hover:not(:disabled) {
+      background: #e9edf4;
+    }
+
+    .danger {
+      background: var(--red-bg);
+      color: var(--red);
+    }
+
+    .danger:hover:not(:disabled) {
+      background: #ffe1e1;
+    }
+
+    .logout {
+      background: #eef2ff;
+      color: var(--blue);
+    }
+
+    .logout:hover:not(:disabled) {
+      background: #e0e7ff;
+    }
+
+    /* MAIN LAYOUT */
+
+    .app {
+      display: grid;
+      grid-template-columns: 245px minmax(0, 1fr);
+      min-height: calc(100vh - 72px);
+    }
+
+    .sidebar {
+      background: var(--white);
+      border-right: 1px solid var(--line);
+      padding: 25px 16px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .side-label {
+      padding: 0 12px 12px;
+      color: #98a2b3;
+      font-size: 10px;
+      font-weight: 850;
+      letter-spacing: 1.4px;
+      text-transform: uppercase;
+    }
+
+    .navitem {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      width: 100%;
+      border: 1px solid transparent;
+      background: transparent;
+      padding: 12px 13px;
+      border-radius: 10px;
+      text-align: left;
+      color: #596579;
+      font-weight: 700;
+      font-size: 12px;
+      margin-bottom: 6px;
+      transition: .18s;
+    }
+
+    .navitem:hover {
+      background: #f6f8ff;
+      color: var(--blue);
+    }
+
+    .navitem.active {
+      background: var(--blue-light);
+      border-color: #e0e7ff;
+      color: var(--blue);
+    }
+
+    .nav-icon {
+      width: 23px;
+      flex-shrink: 0;
+      text-align: center;
+      font-size: 17px;
+    }
+
+    .sidebar-note {
+      margin: auto 5px 0;
+      padding: 16px;
+      border: 1px solid #e5eaff;
+      border-radius: 13px;
+      background: linear-gradient(145deg, #f6f8ff, #eef2ff);
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.8;
+    }
+
+    .sidebar-note strong {
+      display: block;
+      color: var(--dark);
+      margin-bottom: 5px;
+      font-size: 13px;
+    }
+
+    main {
+      min-width: 0;
+      width: 100%;
+      max-width: 1550px;
+      margin: 0 auto;
+      padding: 30px;
+    }
+
+    .view {
+      display: none;
+      animation: fadeIn .22s ease;
+    }
+
+    .view.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* PAGE HEADINGS */
+
+    .page-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      font-size: clamp(23px, 2.5vw, 29px);
+      line-height: 1.25;
+      letter-spacing: -.8px;
+      margin: 0 0 8px;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    /* STATS */
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 17px;
+      margin-bottom: 24px;
+    }
+
+    .stat {
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 21px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      box-shadow: var(--shadow);
+      min-width: 0;
+    }
+
+    .stat-icon {
+      height: 48px;
+      width: 48px;
+      flex-shrink: 0;
+      border-radius: 13px;
+      background: var(--blue-light);
+      display: grid;
+      place-items: center;
+      font-size: 22px;
+    }
+
+    .stat-icon.green {
+      background: #e1f8ed;
+    }
+
+    .stat-icon.orange {
+      background: #fff1df;
+    }
+
+    .stat-label {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 650;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 27px;
+      line-height: 1.3;
+      margin-top: 4px;
+      letter-spacing: -.5px;
+    }
+
+    /* PANELS */
+
+    .panel {
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 22px;
+      box-shadow: var(--shadow);
+      min-width: 0;
+    }
+
+    .panel-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 15px;
+      margin-bottom: 18px;
+    }
+
+    .panel h2 {
+      font-size: 17px;
+      line-height: 1.4;
+      letter-spacing: -.25px;
+      margin: 0 0 5px;
+    }
+
+    .panel-desc {
+      font-size: 12px;
+      color: var(--muted);
+      margin: 0;
+      line-height: 1.7;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid #d9f2e4;
+      font-size: 10px;
+      color: var(--green);
+      background: #ecfdf3;
+      padding: 6px 10px;
+      border-radius: 20px;
+      font-weight: 850;
+      letter-spacing: .5px;
+      white-space: nowrap;
+    }
+
+    /* FORMS */
+
+    .formgrid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0 19px;
+    }
+
+    .field {
+      margin-top: 16px;
+      min-width: 0;
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 750;
+      margin-bottom: 7px;
+      color: #344054;
+    }
+
+    input, select, textarea {
+      display: block;
+      width: 100%;
+      min-width: 0;
+      border: 1px solid #d0d5dd;
+      border-radius: 9px;
+      background: white;
+      color: var(--dark);
+      padding: 11px 12px;
+      font-size: 13px;
+      transition: border-color .18s, box-shadow .18s;
+    }
+
+    input, select {
+      min-height: 43px;
+    }
+
+    textarea {
+      min-height: 88px;
+      resize: vertical;
+      line-height: 1.6;
+    }
+
+    input::placeholder, textarea::placeholder {
+      color: #98a2b3;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(49, 94, 251, .12);
+    }
+
+    input[type="file"] {
+      padding: 9px;
+      background: #fafbff;
+    }
+
+    input[type="file"]::file-selector-button {
+      border: 0;
+      background: var(--blue-light);
+      color: var(--blue);
+      border-radius: 6px;
+      padding: 7px 10px;
+      margin-right: 10px;
+      font-weight: 750;
+      cursor: pointer;
+    }
+
+    .full {
+      grid-column: 1 / -1;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+
+    .message {
+      font-size: 12px;
+      line-height: 1.7;
+      margin-top: 12px;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .divider {
+      height: 1px;
+      background: var(--line);
+      margin: 25px 0;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* NOTES LIBRARY */
+
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin: 18px 0;
+    }
+
+    .toolbar input {
+      flex: 1 1 210px;
+    }
+
+    .toolbar select {
+      flex: 0 1 auto;
+      width: auto;
+      min-width: 140px;
+    }
+
+    .tablewrap {
+      width: 100%;
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 700px;
+    }
+
+    th, td {
+      padding: 14px 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--line);
+      font-size: 12px;
+      vertical-align: middle;
+    }
+
+    th {
+      color: var(--muted);
+      background: #f9fafb;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    tbody tr:last-child td {
+      border-bottom: 0;
+    }
+
+    tbody tr:hover {
+      background: #fafbff;
+    }
+
+    td strong {
+      font-size: 12px;
+    }
+
+    .smalltext {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      margin-top: 5px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 5px 9px;
+      border-radius: 7px;
+      background: var(--blue-light);
+      color: var(--blue);
+      font-size: 11px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .table-actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .table-actions .btn {
+      padding: 8px 10px;
+      font-size: 11px;
+    }
+
+    .empty {
+      text-align: center;
+      color: var(--muted);
+      padding: 28px 15px;
+      font-size: 12px;
+    }
+
+    /* QUIZ BUILDER */
+
+    .question-card {
+      padding: 19px;
+      border: 1px solid var(--line);
+      background: #fafbff;
+      border-radius: 13px;
+      margin-top: 15px;
+    }
+
+    .question-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .question-head h3 {
+      font-size: 14px;
+      margin: 0;
+      color: var(--dark);
+    }
+
+    .question-card .field {
+      margin-top: 13px;
+    }
+
+    .quiz-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 17px;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      padding: 17px;
+      margin-top: 12px;
+      background: white;
+      transition: border-color .18s, box-shadow .18s;
+    }
+
+    .quiz-item:hover {
+      border-color: #cbd5ff;
+      box-shadow: 0 4px 12px rgba(49, 94, 251, .06);
+    }
+
+    .quiz-item > div:first-child {
+      min-width: 0;
+    }
+
+    .quiz-title {
+      font-weight: 800;
+      font-size: 14px;
+      overflow-wrap: anywhere;
+    }
+
+    .quiz-meta {
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.8;
+      margin-top: 6px;
+      overflow-wrap: anywhere;
+    }
+
+    /* RESPONSIVE */
+
+    @media (max-width: 1000px) {
+      .app {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        padding: 10px 14px;
+        flex-direction: row;
+        gap: 6px;
+        overflow-x: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .side-label, .sidebar-note {
+        display: none;
+      }
+
+      .navitem {
+        white-space: nowrap;
+        width: auto;
+        flex-shrink: 0;
+        margin: 0;
+      }
+
+      main {
+        padding: 24px;
+      }
+    }
+
+    @media (max-width: 650px) {
+      .topbar {
+        padding: 0 13px;
+        height: 64px;
+      }
+
+      .brand {
+        font-size: 19px;
+        gap: 8px;
+      }
+
+      .brand-icon {
+        height: 35px;
+        width: 35px;
+        border-radius: 10px;
+      }
+
+      .top-right {
+        gap: 7px;
+      }
+
+      .top-right #teacherName {
+        display: none;
+      }
+
+      .avatar {
+        width: 33px;
+        height: 33px;
+      }
+
+      .logout {
+        padding: 9px 10px;
+      }
+
+      .app {
+        min-height: calc(100vh - 64px);
+      }
+
+      .sidebar {
+        padding: 9px;
+      }
+
+      .navitem {
+        padding: 10px;
+        font-size: 11px;
+      }
+
+      .nav-icon {
+        font-size: 15px;
+        width: auto;
+      }
+
+      main {
+        padding: 14px;
+      }
+
+      .page-head {
+        display: block;
+      }
+
+      .page-head > .btn {
+        margin-top: 13px;
+      }
+
+      .stats {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+
+      .stat {
+        padding: 15px;
+      }
+
+      .stat strong {
+        font-size: 23px;
+      }
+
+      .panel {
+        padding: 16px;
+        border-radius: 13px;
+      }
+
+      .panel-head {
+        gap: 10px;
+      }
+
+      .formgrid {
+        grid-template-columns: 1fr;
+      }
+
+      .full {
+        grid-column: auto;
+      }
+
+      .toolbar {
+        display: grid;
+        grid-template-columns: 1fr;
+      }
+
+      .toolbar input, .toolbar select {
+        width: 100%;
+        min-width: 0;
+      }
+
+      .quiz-item {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 14px;
+      }
+
+      .question-card {
+        padding: 13px;
+      }
+
+      .form-actions .btn {
+        flex: 1 1 auto;
+      }
+
+      .panel-head .pill {
+        display: none;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        animation-duration: .01ms !important;
+        transition-duration: .01ms !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <a href="/" class="brand" aria-label="CampusNotes home">
+      <span class="brand-icon">C</span>
+      <span>Campus<span class="brand-notes">Notes</span></span>
+    </a>
+
+    <div class="top-right">
+      <div class="avatar" aria-hidden="true">T</div>
+      <span id="teacherName">Teacher Dashboard</span>
+      <button class="btn logout" id="logoutBtn" type="button">Logout ↗</button>
+    </div>
+  </header>
+
+  <div class="app">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" aria-label="Dashboard navigation">
+      <div class="side-label">Workspace</div>
+
+      <button class="navitem active" data-view="notesView" type="button">
+        <span class="nav-icon">📚</span>
+        Notes Management
+      </button>
+
+      <button class="navitem" data-view="quizView" type="button">
+        <span class="nav-icon">📝</span>
+        Quiz Management
+      </button>
+
+      <button class="navitem" data-view="libraryView" type="button">
+        <span class="nav-icon">🗂️</span>
+        Notes Library
+      </button>
+
+      <div class="sidebar-note">
+        <strong>🎓 Teacher Workspace</strong>
+        Organise learning materials and create practice quizzes for your students.
+        <br><br>
+        Keep your study resources updated and relevant to each course and semester.
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main>
+
+      <!-- NOTES MANAGEMENT -->
+      <section class="view active" id="notesView">
+        <div class="page-head">
+          <div>
+            <h1>Notes Management</h1>
+            <p class="subtitle">
+              Upload, organise and maintain study PDFs for your students.
+            </p>
+          </div>
+          <button class="btn primary" id="newNoteBtn" type="button">
+            ＋ Upload Notes
+          </button>
+        </div>
+
+        <!-- STATISTICS -->
+        <div class="stats">
+          <div class="stat">
+            <div class="stat-icon">📚</div>
+            <div>
+              <span class="stat-label">Total Notes</span>
+              <strong id="totalNotes">0</strong>
+            </div>
+          </div>
+
+          <div class="stat">
+            <div class="stat-icon green">🎓</div>
+            <div>
+              <span class="stat-label">Courses Covered</span>
+              <strong id="totalCourses">0</strong>
+            </div>
+          </div>
+
+          <div class="stat">
+            <div class="stat-icon orange">📄</div>
+            <div>
+              <span class="stat-label">PDF Resources</span>
+              <strong id="totalPDFs">0</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- UPLOAD FORM -->
+        <section class="panel" id="uploadPanel">
+          <div class="panel-head">
+            <div>
+              <h2 id="formTitle">Upload New Notes</h2>
+              <p class="panel-desc">
+                Enter the study details and select the PDF file you want to share.
+              </p>
+            </div>
+            <span class="pill" id="noteMode">NEW NOTE</span>
+          </div>
+
+          <form id="noteForm">
+            <div class="formgrid">
+
+              <div class="field">
+                <label for="title">Notes Title *</label>
+                <input
+                  id="title"
+                  required
+                  maxlength="150"
+                  placeholder="e.g. Unit 1 Complete Notes"
+                >
+              </div>
+
+              <div class="field">
+                <label for="subject">Subject *</label>
+                <input
+                  id="subject"
+                  required
+                  maxlength="100"
+                  placeholder="e.g. Data Communication"
+                >
+              </div>
+
+              <div class="field">
+                <label for="course">Course *</label>
+                <select id="course" required>
+                  <option value="">Select course</option>
+                  <option>Diploma</option>
+                  <option>BCA</option>
+                  <option>BBA</option>
+                  <option>B.Tech</option>
+                </select>
+              </div>
+
+              <div class="field" id="branchWrap">
+                <label for="branch">Branch</label>
+                <select id="branch">
+                  <option value="">Select branch</option>
+                  <option value="CSE">CSE</option>
+                  <option value="IT">IT</option>
+                  <option value="ECE">ECE</option>
+                  <option value="EE">EE</option>
+                  <option value="ME">ME</option>
+                  <option value="CE">CE (Civil)</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label for="semester">Semester *</label>
+                <select id="semester" required>
+                  <option value="">Select semester</option>
+                  <option value="1">Semester 1</option>
+                  <option value="2">Semester 2</option>
+                  <option value="3">Semester 3</option>
+                  <option value="4">Semester 4</option>
+                  <option value="5">Semester 5</option>
+                  <option value="6">Semester 6</option>
+                  <option value="7">Semester 7</option>
+                  <option value="8">Semester 8</option>
+                </select>
+              </div>
+
+              <div class="field full">
+                <label for="description">Description (Optional)</label>
+                <textarea
+                  id="description"
+                  maxlength="1000"
+                  placeholder="Brief information about these notes"
+                ></textarea>
+              </div>
+
+              <div class="field full">
+                <label for="file">
+                  PDF File <span id="fileRequired">*</span>
+                </label>
+                <input
+                  id="file"
+                  type="file"
+                  accept=".pdf,application/pdf"
+                >
+                <p class="panel-desc" id="fileHelp">
+                  PDF only. Keep the file size within the server's upload limit.
+                </p>
+              </div>
+
+            </div>
+
+            <div class="form-actions">
+              <button class="btn primary" id="submitBtn" type="submit">
+                Upload Notes
+              </button>
+              <button class="btn secondary" id="clearBtn" type="button">
+                Clear Form
+              </button>
+            </div>
+
+            <div class="message" id="formMessage" role="status" aria-live="polite"></div>
+          </form>
+        </section>
+      </section>
+
+      <!-- QUIZ MANAGEMENT -->
+      <section class="view" id="quizView">
+        <div class="page-head">
+          <div>
+            <h1>Quiz Management</h1>
+            <p class="subtitle">
+              Create MCQ practice quizzes and publish them for the right students.
+            </p>
+          </div>
+        </div>
+
+        <!-- QUIZ CREATOR -->
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <h2 id="quizFormTitle">Create a New Quiz</h2>
+              <p class="panel-desc">
+                Add quiz details, questions, four options and the correct answer.
+              </p>
+            </div>
+            <span class="pill">MCQ BUILDER</span>
+          </div>
+
+          <form id="quizForm">
+            <div class="formgrid">
+
+              <div class="field">
+                <label for="quizTitle">Quiz Title *</label>
+                <input
+                  id="quizTitle"
+                  required
+                  maxlength="150"
+                  placeholder="e.g. DCN Unit 1 Test"
+                >
+              </div>
+
+              <div class="field">
+                <label for="quizSubject">Subject *</label>
+                <input
+                  id="quizSubject"
+                  required
+                  maxlength="100"
+                  placeholder="e.g. Data Communication"
+                >
+              </div>
+
+              <div class="field">
+                <label for="quizCourse">Course *</label>
+                <select id="quizCourse" required>
+                  <option value="">Select course</option>
+                  <option>Diploma</option>
+                  <option>BCA</option>
+                  <option>BBA</option>
+                  <option>B.Tech</option>
+                </select>
+              </div>
+
+              <div class="field" id="quizBranchWrap">
+                <label for="quizBranch">Branch</label>
+                <select id="quizBranch">
+                  <option value="">Select branch</option>
+                  <option value="CSE">CSE</option>
+                  <option value="IT">IT</option>
+                  <option value="ECE">ECE</option>
+                  <option value="EE">EE</option>
+                  <option value="ME">ME</option>
+                  <option value="CE">CE (Civil)</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label for="quizSemester">Semester *</label>
+                <select id="quizSemester" required>
+                  <option value="">Select semester</option>
+                  <option value="1">Semester 1</option>
+                  <option value="2">Semester 2</option>
+                  <option value="3">Semester 3</option>
+                  <option value="4">Semester 4</option>
+                  <option value="5">Semester 5</option>
+                  <option value="6">Semester 6</option>
+                  <option value="7">Semester 7</option>
+                  <option value="8">Semester 8</option>
+                </select>
+              </div>
+
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="panel-head">
+              <div>
+                <h2>Questions</h2>
+                <p class="panel-desc">
+                  Each question has four options and one correct answer.
+                </p>
+              </div>
+
+              <button
+                class="btn secondary"
+                type="button"
+                id="addQuestionBtn"
+              >
+                ＋ Add Question
+              </button>
+            </div>
+
+            <div id="questionsContainer"></div>
+
+            <div class="form-actions">
+              <button class="btn primary" type="submit" id="saveQuizBtn">
+                Create Quiz
+              </button>
+              <button class="btn secondary" type="button" id="clearQuizBtn">
+                Clear Quiz
+              </button>
+            </div>
+
+            <div class="message" id="quizMessage" role="status" aria-live="polite"></div>
+          </form>
+        </section>
+
+        <!-- SAVED QUIZZES -->
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <h2>Existing Quizzes</h2>
+              <p class="panel-desc">
+                Review saved quizzes and publish a quiz when it is ready.
+              </p>
+            </div>
+
+            <button class="btn secondary" type="button" id="refreshQuizzesBtn">
+              ↻ Refresh
+            </button>
+          </div>
+
+          <div id="quizList">
+            <div class="empty">Loading quizzes...</div>
+          </div>
+        </section>
+      </section>
+
+      <!-- NOTES LIBRARY -->
+      <section class="view" id="libraryView">
+        <div class="page-head">
+          <div>
+            <h1>Notes Library</h1>
+            <p class="subtitle">
+              Search, filter, preview, edit or delete uploaded study notes.
+            </p>
+          </div>
+
+          <button class="btn secondary" id="refreshNotesBtn" type="button">
+            ↻ Refresh
+          </button>
+        </div>
+
+        <section class="panel">
+          <div class="toolbar">
+            <input
+              id="search"
+              type="search"
+              aria-label="Search notes"
+              placeholder="Search title or subject..."
+            >
+
+            <select id="filterCourse" aria-label="Filter by course">
+              <option value="">All courses</option>
+              <option>Diploma</option>
+              <option>BCA</option>
+              <option>BBA</option>
+              <option>B.Tech</option>
+            </select>
+
+            <select id="filterBranch" aria-label="Filter by branch">
+              <option value="">All branches</option>
+              <option value="CSE">CSE</option>
+              <option value="IT">IT</option>
+              <option value="ECE">ECE</option>
+              <option value="EE">EE</option>
+              <option value="ME">ME</option>
+              <option value="CE">CE (Civil)</option>
+            </select>
+
+            <select id="filterSemester" aria-label="Filter by semester">
+              <option value="">All semesters</option>
+              <option value="1">Semester 1</option>
+              <option value="2">Semester 2</option>
+              <option value="3">Semester 3</option>
+              <option value="4">Semester 4</option>
+              <option value="5">Semester 5</option>
+              <option value="6">Semester 6</option>
+              <option value="7">Semester 7</option>
+              <option value="8">Semester 8</option>
+            </select>
+          </div>
+
+          <div id="libraryMessage" class="message" role="status" aria-live="polite"></div>
+
+          <div class="tablewrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Notes</th>
+                  <th>Course</th>
+                  <th>Branch</th>
+                  <th>Semester</th>
+                  <th>PDF</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+
+              <tbody id="notesBody">
+                <tr>
+                  <td colspan="6" class="empty">Loading notes...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Keep this filename and path unchanged -->
+  <script src="/teacher.js" defer></script>
+
+</body>
+</html>

@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Teacher Login | CampusNotes</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Segoe UI", Arial, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background:
+                radial-gradient(circle at 10% 20%, rgba(49,94,251,.12), transparent 30%),
+                radial-gradient(circle at 90% 80%, rgba(49,94,251,.10), transparent 30%),
+                #f5f7fb;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 25px;
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 950px;
+            min-height: 570px;
+
+            background: #fff;
+            border-radius: 24px;
+            overflow: hidden;
+
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+
+            box-shadow: 0 25px 70px rgba(23,32,51,.12);
+        }
+
+        /* LEFT */
+
+        .login-left {
+            background: linear-gradient(145deg, #172033, #26344f);
+            color: white;
+
+            padding: 55px 45px;
+
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-left::before {
+            content: "";
+            position: absolute;
+
+            width: 300px;
+            height: 300px;
+
+            border-radius: 50%;
+
+            background: rgba(49,94,251,.18);
+
+            top: -120px;
+            right: -100px;
+        }
+
+        .login-left::after {
+            content: "";
+            position: absolute;
+
+            width: 220px;
+            height: 220px;
+
+            border-radius: 50%;
+
+            background: rgba(255,255,255,.04);
+
+            bottom: -100px;
+            left: -70px;
+        }
+
+        .brand {
+            position: relative;
+            z-index: 2;
+
+            display: flex;
+            align-items: center;
+            gap: 12px;
+
+            margin-bottom: 45px;
+        }
+
+        .brand-icon {
+            width: 48px;
+            height: 48px;
+
+            border-radius: 13px;
+
+            background: #315efb;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            font-size: 23px;
+            font-weight: 700;
+        }
+
+        .brand-name {
+            font-size: 25px;
+            font-weight: 700;
+        }
+
+        .left-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .teacher-badge {
+            display: inline-block;
+
+            padding: 7px 13px;
+
+            background: rgba(49,94,251,.18);
+            color: #bfcfff;
+
+            border: 1px solid rgba(49,94,251,.3);
+
+            border-radius: 20px;
+
+            font-size: 12px;
+            font-weight: 600;
+
+            margin-bottom: 18px;
+        }
+
+        .left-content h1 {
+            font-size: 38px;
+            line-height: 1.15;
+
+            margin-bottom: 18px;
+        }
+
+        .left-content p {
+            font-size: 16px;
+            line-height: 1.7;
+
+            color: rgba(255,255,255,.75);
+
+            max-width: 390px;
+        }
+
+        .features {
+            margin-top: 35px;
+
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .feature {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+
+            font-size: 14px;
+
+            color: rgba(255,255,255,.9);
+        }
+
+        .feature-icon {
+            width: 30px;
+            height: 30px;
+
+            border-radius: 8px;
+
+            background: rgba(255,255,255,.08);
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            color: #8eacff;
+        }
+
+        /* RIGHT */
+
+        .login-right {
+            padding: 55px 50px;
+
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .login-heading {
+            margin-bottom: 30px;
+        }
+
+        .login-heading h2 {
+            font-size: 29px;
+            color: #172033;
+
+            margin-bottom: 8px;
+        }
+
+        .login-heading p {
+            color: #777;
+            font-size: 14px;
+        }
+
+        .message {
+            display: none;
+
+            padding: 12px 14px;
+
+            border-radius: 9px;
+
+            font-size: 14px;
+
+            margin-bottom: 18px;
+        }
+
+        .message.error {
+            display: block;
+
+            background: #fff0f0;
+            color: #c62828;
+
+            border: 1px solid #ffd1d1;
+        }
+
+        .message.success {
+            display: block;
+
+            background: #effaf2;
+            color: #218838;
+
+            border: 1px solid #ccebd4;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+
+            color: #273043;
+
+            font-size: 14px;
+            font-weight: 600;
+
+            margin-bottom: 8px;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+
+            left: 15px;
+            top: 50%;
+
+            transform: translateY(-50%);
+
+            color: #8b93a7;
+
+            font-size: 16px;
+        }
+
+        input {
+            width: 100%;
+            height: 50px;
+
+            border: 1px solid #dfe3eb;
+
+            border-radius: 10px;
+
+            padding: 0 15px 0 45px;
+
+            font-size: 14px;
+
+            color: #172033;
+
+            background: #fbfcfe;
+
+            outline: none;
+
+            transition: .2s;
+        }
+
+        input:focus {
+            background: #fff;
+
+            border-color: #315efb;
+
+            box-shadow: 0 0 0 4px rgba(49,94,251,.08);
+        }
+
+        input::placeholder {
+            color: #a0a6b2;
+        }
+
+        .login-btn {
+            width: 100%;
+            height: 51px;
+
+            border: none;
+            border-radius: 10px;
+
+            background: #315efb;
+            color: white;
+
+            font-size: 15px;
+            font-weight: 600;
+
+            cursor: pointer;
+
+            transition: .2s;
+
+            margin-top: 5px;
+        }
+
+        .login-btn:hover {
+            background: #244bd1;
+
+            transform: translateY(-1px);
+
+            box-shadow: 0 8px 20px rgba(49,94,251,.22);
+        }
+
+        .login-btn:disabled {
+            opacity: .7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .admin-note {
+            margin-top: 20px;
+
+            padding: 12px 14px;
+
+            background: #f5f7fb;
+
+            border: 1px solid #e6e9ef;
+
+            border-radius: 9px;
+
+            color: #6f7685;
+
+            font-size: 12px;
+
+            line-height: 1.5;
+
+            text-align: center;
+        }
+
+        .back-home {
+            text-align: center;
+
+            margin-top: 20px;
+        }
+
+        .back-home a {
+            text-decoration: none;
+
+            color: #8a8f9d;
+
+            font-size: 13px;
+        }
+
+        .back-home a:hover {
+            color: #315efb;
+        }
+
+        .secure-text {
+            text-align: center;
+
+            margin-top: 28px;
+
+            font-size: 12px;
+
+            color: #a0a5af;
+        }
+
+        /* RESPONSIVE */
+
+        @media (max-width: 750px) {
+
+            .login-container {
+                grid-template-columns: 1fr;
+
+                max-width: 480px;
+            }
+
+            .login-left {
+                display: none;
+            }
+
+            .login-right {
+                padding: 45px 30px;
+            }
+        }
+
+        @media (max-width: 420px) {
+
+            body {
+                padding: 15px;
+            }
+
+            .login-right {
+                padding: 35px 22px;
+            }
+
+            .login-heading h2 {
+                font-size: 25px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="login-container">
+
+    <!-- LEFT PANEL -->
+
+    <div class="login-left">
+
+        <div class="brand">
+
+            <div class="brand-icon">
+                C
+            </div>
+
+            <div class="brand-name">
+                CampusNotes
+            </div>
+
+        </div>
+
+        <div class="left-content">
+
+            <div class="teacher-badge">
+                TEACHER PORTAL
+            </div>
+
+            <h1>
+                Manage Learning<br>
+                Resources
+            </h1>
+
+            <p>
+                Upload and manage academic notes for students
+                through your secure CampusNotes teacher dashboard.
+            </p>
+
+            <div class="features">
+
+                <div class="feature">
+                    <div class="feature-icon">✓</div>
+                    <span>Upload PDF study materials</span>
+                </div>
+
+                <div class="feature">
+                    <div class="feature-icon">✓</div>
+                    <span>Manage semester-wise notes</span>
+                </div>
+
+                <div class="feature">
+                    <div class="feature-icon">✓</div>
+                    <span>Organize course resources</span>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- RIGHT PANEL -->
+
+    <div class="login-right">
+
+        <div class="login-heading">
+
+            <h2>Teacher Login</h2>
+
+            <p>
+                Sign in to access your teacher dashboard.
+            </p>
+
+        </div>
+
+
+        <div id="message" class="message"></div>
+
+
+        <form id="loginForm">
+
+            <div class="form-group">
+
+                <label for="email">
+                    Email Address
+                </label>
+
+                <div class="input-wrapper">
+
+                    <span class="input-icon">✉</span>
+
+                    <input
+                        type="email"
+                        id="email"
+                        placeholder="Enter teacher email"
+                        autocomplete="email"
+                        required
+                    >
+
+                </div>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="password">
+                    Password
+                </label>
+
+                <div class="input-wrapper">
+
+                    <span class="input-icon">🔒</span>
+
+                    <input
+                        type="password"
+                        id="password"
+                        placeholder="Enter your password"
+                        autocomplete="current-password"
+                        required
+                    >
+
+                </div>
+
+            </div>
+
+
+            <button
+                type="submit"
+                class="login-btn"
+                id="loginBtn"
+            >
+                Sign In
+            </button>
+
+        </form>
+
+
+        <div class="admin-note">
+            Teacher access is restricted to authorized accounts.
+        </div>
+
+
+        <div class="back-home">
+
+            <a href="/">
+                ← Back to CampusNotes
+            </a>
+
+        </div>
+
+
+        <div class="secure-text">
+            🔒 Secure teacher authentication
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+const loginForm = document.getElementById("loginForm");
+const message = document.getElementById("message");
+const loginBtn = document.getElementById("loginBtn");
+
+loginForm.addEventListener("submit", async function(event) {
+
+    event.preventDefault();
+
+    const email =
+        document.getElementById("email").value.trim();
+
+    const password =
+        document.getElementById("password").value;
+
+
+    message.className = "message";
+    message.textContent = "";
+
+
+    loginBtn.disabled = true;
+    loginBtn.textContent = "Signing in...";
+
+
+    try {
+
+        const response = await fetch("/api/login", {
+
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+
+                email: email,
+
+                password: password,
+
+                role: "teacher"
+
+            })
+
+        });
+
+
+        const data = await response.json();
+
+
+        if (!response.ok) {
+
+            message.textContent =
+                data.message ||
+                data.error ||
+                "Invalid teacher email or password.";
+
+            message.className = "message error";
+
+            loginBtn.disabled = false;
+            loginBtn.textContent = "Sign In";
+
+            return;
+        }
+
+
+        if (!data.token) {
+
+            message.textContent =
+                "Login failed. Authentication token was not received.";
+
+            message.className = "message error";
+
+            loginBtn.disabled = false;
+            loginBtn.textContent = "Sign In";
+
+            return;
+        }
+
+
+        localStorage.setItem(
+            "campusnotes_token",
+            data.token
+        );
+
+
+        message.textContent =
+            "Login successful. Opening dashboard...";
+
+        message.className = "message success";
+
+
+        setTimeout(function() {
+
+            window.location.href =
+                "/teacher-dashboard.html";
+
+        }, 700);
+
+
+    } catch (error) {
+
+        console.error("Teacher Login Error:", error);
+
+        message.textContent =
+            "Unable to connect to CampusNotes server.";
+
+        message.className = "message error";
+
+        loginBtn.disabled = false;
+        loginBtn.textContent = "Sign In";
+
+    }
+
+});
+
+</script>
+
+</body>
+</html>
