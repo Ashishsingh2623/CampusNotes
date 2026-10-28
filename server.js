@@ -1,4 +1,3 @@
-
 require("dotenv").config();
 
 const express = require("express");
@@ -8,6 +7,13 @@ const multer = require("multer");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
+const {
+  S3Client,
+  PutObjectCommand,
+  GetObjectCommand,
+  DeleteObjectCommand
+} = require("@aws-sdk/client-s3");
+const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 const { pool, initDB } = require("./db");
 
 const app = express();
@@ -16,6 +22,38 @@ const JWT_SECRET = process.env.JWT_SECRET;
 
 if (!JWT_SECRET) {
   throw new Error("JWT_SECRET missing from environment variables.");
+}
+
+const B2_BUCKET_NAME = process.env.B2_BUCKET_NAME;
+const B2_REGION = process.env.B2_REGION;
+const B2_ENDPOINT = process.env.B2_ENDPOINT;
+const B2_KEY_ID = process.env.B2_KEY_ID;
+const B2_APPLICATION_KEY = process.env.B2_APPLICATION_KEY;
+
+const b2Configured = Boolean(
+  B2_BUCKET_NAME &&
+  B2_REGION &&
+  B2_ENDPOINT &&
+  B2_KEY_ID &&
+  B2_APPLICATION_KEY
+);
+
+const b2 = b2Configured
+  ? new S3Client({
+      region: B2_REGION,
+      endpoint: B2_ENDPOINT,
+      forcePathStyle: true,
+      credentials: {
+        accessKeyId: B2_KEY_ID,
+        secretAccessKey: B2_APPLICATION_KEY
+      }
+    })
+  : null;
+
+if (!b2Configured) {
+  console.warn(
+    "Backblaze B2 environment variables are incomplete."
+  );
 }
 
 const PUBLIC_DIR = path.join(__dirname, "public");
@@ -38,11 +76,14 @@ function norm(value) {
 
 function normalizeCourse(value) {
   const course = norm(value);
-  return course === "btech" || course === "b.tech" ? "b.tech" : course;
+  return course === "btech" || course === "b.tech"
+    ? "b.tech"
+    : course;
 }
 
 function normalizeBranch(value) {
   const branch = norm(value);
+
   return ["civil", "ce", "civil engineering"].includes(branch)
     ? "ce"
     : branch;
@@ -54,10 +95,17 @@ function normalizeSemester(value) {
 }
 
 function validCourseDetails(course, branch, semester) {
-  const limits = { Diploma: 6, BCA: 6, BBA: 6, "B.Tech": 8 };
+  const limits = {
+    Diploma: 6,
+    BCA: 6,
+    BBA: 6,
+    "B.Tech": 8
+  };
+
   const sem = Number(normalizeSemester(semester));
 
   if (!COURSES.includes(course)) return false;
+
   if (!Number.isInteger(sem) || sem < 1 || sem > limits[course]) {
     return false;
   }
@@ -77,13 +125,17 @@ function safeUser(user) {
 }
 
 async function readDB() {
-  const [usersResult, notesResult, quizzesResult, resultsResult] =
-    await Promise.all([
-      pool.query("SELECT * FROM users ORDER BY created_at DESC"),
-      pool.query("SELECT id, data FROM notes"),
-      pool.query("SELECT id, data FROM quizzes"),
-      pool.query("SELECT id, data FROM quiz_results")
-    ]);
+  const [
+    usersResult,
+    notesResult,
+    quizzesResult,
+    resultsResult
+  ] = await Promise.all([
+    pool.query("SELECT * FROM users ORDER BY created_at DESC"),
+    pool.query("SELECT id, data FROM notes"),
+    pool.query("SELECT id, data FROM quizzes"),
+    pool.query("SELECT id, data FROM quiz_results")
+  ]);
 
   const users = usersResult.rows.map(row => ({
     id: row.id,
@@ -147,16 +199,20 @@ async function writeDB(db) {
 
 async function authenticate(req, res, next) {
   const authorization = req.headers.authorization || "";
+
   const token = authorization.startsWith("Bearer ")
     ? authorization.slice(7)
     : "";
 
   if (!token) {
-    return res.status(401).json({ message: "Please log in first." });
+    return res.status(401).json({
+      message: "Please log in first."
+    });
   }
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
+
     const result = await pool.query(
       "SELECT * FROM users WHERE id = $1",
       [String(decoded.id)]
@@ -171,7 +227,9 @@ async function authenticate(req, res, next) {
     }
 
     if (norm(row.role) !== norm(decoded.role)) {
-      return res.status(401).json({ message: "Invalid login session." });
+      return res.status(401).json({
+        message: "Invalid login session."
+      });
     }
 
     req.user = {
@@ -200,6 +258,7 @@ function requireTeacher(req, res, next) {
       message: "Admin access required."
     });
   }
+
   next();
 }
 
@@ -209,6 +268,7 @@ function requireStudent(req, res, next) {
       message: "Student access required."
     });
   }
+
   next();
 }
 
@@ -216,12 +276,16 @@ function studentMatchesItem(item, user) {
   const course = normalizeCourse(user.course);
 
   if (normalizeCourse(item.course) !== course) return false;
+
   if (
     normalizeSemester(item.semester) !==
     normalizeSemester(user.semester)
-  ) return false;
+  ) {
+    return false;
+  }
 
   if (course === "bca" || course === "bba") return true;
+
   return normalizeBranch(item.branch) === normalizeBranch(user.branch);
 }
 
@@ -234,25 +298,23 @@ function publicQuiz(quiz, showAnswers = false) {
         text: question.text,
         options: question.options
       };
-      if (showAnswers) result.correctAnswer = question.correctAnswer;
+
+      if (showAnswers) {
+        result.correctAnswer = question.correctAnswer;
+      }
+
       return result;
     })
   };
 }
 
-const storage = multer.diskStorage({
-  destination: (req, file, callback) => callback(null, UPLOAD_DIR),
-  filename: (req, file, callback) => {
-    callback(
-      null,
-      Date.now() + "-" + crypto.randomBytes(8).toString("hex") + ".pdf"
-    );
-  }
-});
+const storage = multer.memoryStorage();
 
 const upload = multer({
   storage,
-  limits: { fileSize: 15 * 1024 * 1024 },
+  limits: {
+    fileSize: 15 * 1024 * 1024
+  },
   fileFilter: (req, file, callback) => {
     if (
       file.mimetype !== "application/pdf" ||
@@ -260,16 +322,95 @@ const upload = multer({
     ) {
       return callback(new Error("Only PDF files are allowed."));
     }
+
     callback(null, true);
   }
 });
 
-function removeUploadedFile(filename) {
-  if (!filename) return;
-  const filePath = path.join(UPLOAD_DIR, path.basename(filename));
-  if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+async function uploadPdfToB2(file) {
+  if (!b2Configured || !b2) {
+    throw new Error(
+      "Backblaze B2 is not configured. Check Render environment variables."
+    );
+  }
+
+  const key =
+    Date.now() + "-" +
+    crypto.randomBytes(10).toString("hex") +
+    ".pdf";
+
+  await b2.send(
+    new PutObjectCommand({
+      Bucket: B2_BUCKET_NAME,
+      Key: key,
+      Body: file.buffer,
+      ContentLength: file.size,
+      ContentType: "application/pdf"
+    })
+  );
+
+  return key;
 }
 
+async function getNoteFileUrl(note) {
+  if (note && (note.storageProvider === "b2" || note.b2Key)) {
+    if (!b2Configured || !b2) {
+      throw new Error(
+        "Backblaze B2 is not configured. Check Render environment variables."
+      );
+    }
+
+    const key = note.b2Key || note.fileName;
+
+    return getSignedUrl(
+      b2,
+      new GetObjectCommand({
+        Bucket: B2_BUCKET_NAME,
+        Key: key,
+        ResponseContentType: "application/pdf",
+        ResponseContentDisposition: "inline"
+      }),
+      { expiresIn: 3600 }
+    );
+  }
+
+  // Compatibility for older notes stored on local disk.
+  return note?.fileUrl || "";
+}
+
+async function removeNoteFile(noteOrFilename) {
+  if (!noteOrFilename) return;
+
+  if (typeof noteOrFilename === "object") {
+    const note = noteOrFilename;
+
+    if (note.storageProvider === "b2" || note.b2Key) {
+      if (b2Configured && b2) {
+        const key = note.b2Key || note.fileName;
+
+        await b2.send(
+          new DeleteObjectCommand({
+            Bucket: B2_BUCKET_NAME,
+            Key: key
+          })
+        );
+      }
+
+      return;
+    }
+
+    noteOrFilename = note.fileName;
+  }
+
+  const filePath = path.join(
+    UPLOAD_DIR,
+    path.basename(String(noteOrFilename))
+  );
+
+  if (fs.existsSync(filePath)) {
+    fs.unlinkSync(filePath);
+  }
+}
 app.get("/", (req, res) => {
   res.sendFile(path.join(PUBLIC_DIR, "index.html"));
 });
@@ -342,6 +483,7 @@ app.post("/api/register", async (req, res) => {
         message: "This email is already registered."
       });
     }
+
     console.error("Registration error:", error.message);
     res.status(500).json({ message: "Registration failed." });
   }
@@ -374,7 +516,9 @@ app.post("/api/login", async (req, res) => {
     }
 
     if (!(await bcrypt.compare(password, user.password))) {
-      return res.status(401).json({ message: "Incorrect password." });
+      return res.status(401).json({
+        message: "Incorrect password."
+      });
     }
 
     const token = jwt.sign(
@@ -413,143 +557,233 @@ app.get("/api/notes", authenticate, async (req, res) => {
     notes.sort(
       (a, b) => new Date(b.uploadedAt || 0) - new Date(a.uploadedAt || 0)
     );
-    res.json({ notes });
+
+    const notesWithUrls = await Promise.all(
+      notes.map(async note => ({
+        ...note,
+        fileUrl: await getNoteFileUrl(note)
+      }))
+    );
+
+    res.json({ notes: notesWithUrls });
   } catch (error) {
     console.error("Load notes error:", error.message);
     res.status(500).json({ message: "Unable to load notes." });
   }
 });
 
-/* NOTES UPLOAD */
-app.post("/api/notes", authenticate, requireTeacher, upload.single("file"), async (req, res) => {
-  try {
-    const title = String(req.body.title ?? "").trim();
-    const subject = String(req.body.subject ?? "").trim();
-    const course = String(req.body.course ?? "").trim();
-    let branch = String(req.body.branch ?? "").trim();
-    const semester = req.body.semester;
-    const description = String(req.body.description ?? "").trim();
+/* NOTES UPLOAD — BACKBLAZE B2 */
+app.post(
+  "/api/notes",
+  authenticate,
+  requireTeacher,
+  upload.single("file"),
+  async (req, res) => {
+    let uploadedB2Key = null;
 
-    if (["BCA", "BBA"].includes(course)) branch = "";
+    try {
+      const title = String(req.body.title ?? "").trim();
+      const subject = String(req.body.subject ?? "").trim();
+      const course = String(req.body.course ?? "").trim();
+      let branch = String(req.body.branch ?? "").trim();
+      const semester = req.body.semester;
+      const description = String(req.body.description ?? "").trim();
 
-    if (!title || !subject || !req.file) {
-      removeUploadedFile(req.file?.filename);
-      return res.status(400).json({
-        message: "Title, subject and PDF file are required."
+      if (["BCA", "BBA"].includes(course)) branch = "";
+
+      if (!title || !subject || !req.file) {
+        return res.status(400).json({
+          message: "Title, subject and PDF file are required."
+        });
+      }
+
+      if (!validCourseDetails(course, branch, semester)) {
+        return res.status(400).json({
+          message: "Invalid course, branch or semester."
+        });
+      }
+
+      uploadedB2Key = await uploadPdfToB2(req.file);
+
+      const note = {
+        id: crypto.randomUUID(),
+        title,
+        subject,
+        course,
+        branch,
+        semester: Number(normalizeSemester(semester)),
+        description,
+        fileName: uploadedB2Key,
+        b2Key: uploadedB2Key,
+        storageProvider: "b2",
+        originalFileName: req.file.originalname,
+        fileUrl: "",
+        fileType: "application/pdf",
+        uploadedBy: req.user.id,
+        uploadedByName: req.user.name,
+        uploadedAt: new Date().toISOString()
+      };
+
+      const db = await readDB();
+      db.notes.push(note);
+      await writeDB(db);
+
+      note.fileUrl = await getNoteFileUrl(note);
+
+      res.status(201).json({
+        message: "Notes uploaded successfully.",
+        note
+      });
+    } catch (error) {
+      if (uploadedB2Key && b2Configured && b2) {
+        try {
+          await b2.send(
+            new DeleteObjectCommand({
+              Bucket: B2_BUCKET_NAME,
+              Key: uploadedB2Key
+            })
+          );
+        } catch (cleanupError) {
+          console.error("B2 upload cleanup error:", cleanupError.message);
+        }
+      }
+
+      console.error("Upload notes error:", error.message);
+
+      res.status(500).json({
+        message: "Notes upload failed. Check server logs and B2 settings."
       });
     }
-
-    if (!validCourseDetails(course, branch, semester)) {
-      removeUploadedFile(req.file.filename);
-      return res.status(400).json({
-        message: "Invalid course, branch or semester."
-      });
-    }
-
-    const note = {
-      id: crypto.randomUUID(),
-      title,
-      subject,
-      course,
-      branch,
-      semester: Number(normalizeSemester(semester)),
-      description,
-      fileName: req.file.filename,
-      originalFileName: req.file.originalname,
-      fileUrl: "/uploads/" + encodeURIComponent(req.file.filename),
-      fileType: "application/pdf",
-      uploadedBy: req.user.id,
-      uploadedByName: req.user.name,
-      uploadedAt: new Date().toISOString()
-    };
-
-    const db = await readDB();
-    db.notes.push(note);
-    await writeDB(db);
-
-    res.status(201).json({ message: "Notes uploaded successfully.", note });
-  } catch (error) {
-    removeUploadedFile(req.file?.filename);
-    console.error("Upload notes error:", error.message);
-    res.status(500).json({ message: "Notes upload failed." });
   }
-});
+);
 
 /* NOTES EDIT */
-app.put("/api/notes/:id", authenticate, requireTeacher, upload.single("file"), async (req, res) => {
-  try {
-    const db = await readDB();
-    const note = db.notes.find(item => String(item.id) === String(req.params.id));
+app.put(
+  "/api/notes/:id",
+  authenticate,
+  requireTeacher,
+  upload.single("file"),
+  async (req, res) => {
+    let uploadedB2Key = null;
 
-    if (!note) {
-      removeUploadedFile(req.file?.filename);
-      return res.status(404).json({ message: "Note not found." });
-    }
+    try {
+      const db = await readDB();
+      const note = db.notes.find(
+        item => String(item.id) === String(req.params.id)
+      );
 
-    const title = String(req.body.title ?? note.title).trim();
-    const subject = String(req.body.subject ?? note.subject).trim();
-    const course = String(req.body.course ?? note.course).trim();
-    let branch = String(req.body.branch ?? note.branch ?? "").trim();
-    const semester = req.body.semester ?? note.semester;
-    const description = String(req.body.description ?? note.description ?? "").trim();
+      if (!note) {
+        return res.status(404).json({ message: "Note not found." });
+      }
 
-    if (["BCA", "BBA"].includes(course)) branch = "";
+      const title = String(req.body.title ?? note.title).trim();
+      const subject = String(req.body.subject ?? note.subject).trim();
+      const course = String(req.body.course ?? note.course).trim();
+      let branch = String(req.body.branch ?? note.branch ?? "").trim();
+      const semester = req.body.semester ?? note.semester;
+      const description = String(
+        req.body.description ?? note.description ?? ""
+      ).trim();
 
-    if (!title || !subject || !validCourseDetails(course, branch, semester)) {
-      removeUploadedFile(req.file?.filename);
-      return res.status(400).json({
-        message: "Check title, subject, course, branch and semester."
+      if (["BCA", "BBA"].includes(course)) branch = "";
+
+      if (!title || !subject || !validCourseDetails(course, branch, semester)) {
+        return res.status(400).json({
+          message: "Check title, subject, course, branch and semester."
+        });
+      }
+
+      const oldNoteFile = { ...note };
+
+      Object.assign(note, {
+        title,
+        subject,
+        course,
+        branch,
+        semester: Number(normalizeSemester(semester)),
+        description,
+        updatedAt: new Date().toISOString()
+      });
+
+      if (req.file) {
+        uploadedB2Key = await uploadPdfToB2(req.file);
+
+        note.fileName = uploadedB2Key;
+        note.b2Key = uploadedB2Key;
+        note.storageProvider = "b2";
+        note.originalFileName = req.file.originalname;
+        note.fileUrl = "";
+        note.fileType = "application/pdf";
+      }
+
+      await writeDB(db);
+
+      if (req.file) {
+        try {
+          await removeNoteFile(oldNoteFile);
+        } catch (cleanupError) {
+          console.error("Old note file cleanup error:", cleanupError.message);
+        }
+      }
+
+      note.fileUrl = await getNoteFileUrl(note);
+
+      res.json({
+        message: "Note updated successfully.",
+        note
+      });
+    } catch (error) {
+      if (uploadedB2Key && b2Configured && b2) {
+        try {
+          await b2.send(
+            new DeleteObjectCommand({
+              Bucket: B2_BUCKET_NAME,
+              Key: uploadedB2Key
+            })
+          );
+        } catch (cleanupError) {
+          console.error("B2 edit cleanup error:", cleanupError.message);
+        }
+      }
+
+      console.error("Edit note error:", error.message);
+
+      res.status(500).json({
+        message: "Unable to update note. Check server logs and B2 settings."
       });
     }
-
-    const oldFilename = note.fileName;
-
-    Object.assign(note, {
-      title, subject, course, branch,
-      semester: Number(normalizeSemester(semester)),
-      description,
-      updatedAt: new Date().toISOString()
-    });
-
-    if (req.file) {
-      note.fileName = req.file.filename;
-      note.originalFileName = req.file.originalname;
-      note.fileUrl = "/uploads/" + encodeURIComponent(req.file.filename);
-      note.fileType = "application/pdf";
-    }
-
-    await writeDB(db);
-    if (req.file && oldFilename) removeUploadedFile(oldFilename);
-
-    res.json({ message: "Note updated successfully.", note });
-  } catch (error) {
-    removeUploadedFile(req.file?.filename);
-    console.error("Edit note error:", error.message);
-    res.status(500).json({ message: "Unable to update note." });
   }
-});
+);
 
 /* NOTES DELETE */
-app.delete("/api/notes/:id", authenticate, requireTeacher, async (req, res) => {
-  try {
-    const db = await readDB();
-    const index = db.notes.findIndex(item => String(item.id) === String(req.params.id));
+app.delete(
+  "/api/notes/:id",
+  authenticate,
+  requireTeacher,
+  async (req, res) => {
+    try {
+      const db = await readDB();
 
-    if (index === -1) {
-      return res.status(404).json({ message: "Note not found." });
+      const index = db.notes.findIndex(
+        item => String(item.id) === String(req.params.id)
+      );
+
+      if (index === -1) {
+        return res.status(404).json({ message: "Note not found." });
+      }
+
+      const [note] = db.notes.splice(index, 1);
+
+      await writeDB(db);
+      await removeNoteFile(note);
+
+      res.json({ message: "Note deleted successfully." });
+    } catch (error) {
+      console.error("Delete note error:", error.message);
+      res.status(500).json({ message: "Unable to delete note." });
     }
-
-    const [note] = db.notes.splice(index, 1);
-    await writeDB(db);
-    removeUploadedFile(note.fileName);
-
-    res.json({ message: "Note deleted successfully." });
-  } catch (error) {
-    console.error("Delete note error:", error.message);
-    res.status(500).json({ message: "Unable to delete note." });
   }
-});
-
+);
 /* CREATE QUIZ DRAFT */
 app.post("/api/quizzes", authenticate, requireTeacher, async (req, res) => {
   try {
@@ -563,46 +797,78 @@ app.post("/api/quizzes", authenticate, requireTeacher, async (req, res) => {
     if (["BCA", "BBA"].includes(course)) branch = "";
 
     if (!title || !subject) {
-      return res.status(400).json({ message: "Quiz title and subject are required." });
+      return res.status(400).json({
+        message: "Quiz title and subject are required."
+      });
     }
 
     if (!validCourseDetails(course, branch, semester)) {
-      return res.status(400).json({ message: "Invalid course, branch or semester." });
+      return res.status(400).json({
+        message: "Invalid course, branch or semester."
+      });
     }
 
-    if (!Array.isArray(rawQuestions) || rawQuestions.length < 1 || rawQuestions.length > 100) {
-      return res.status(400).json({ message: "Add between 1 and 100 questions." });
+    if (
+      !Array.isArray(rawQuestions) ||
+      rawQuestions.length < 1 ||
+      rawQuestions.length > 100
+    ) {
+      return res.status(400).json({
+        message: "Add between 1 and 100 questions."
+      });
     }
 
     const questions = [];
 
     for (let i = 0; i < rawQuestions.length; i++) {
       const question = rawQuestions[i] || {};
-      const text = String(question.text ?? question.question ?? "").trim();
+      const text = String(
+        question.text ?? question.question ?? ""
+      ).trim();
+
       const options = Array.isArray(question.options)
         ? question.options.map(value => String(value ?? "").trim())
         : [];
+
       const correctAnswer = Number(question.correctAnswer);
 
-      if (!text || options.length !== 4 || options.some(value => !value)) {
+      if (
+        !text ||
+        options.length !== 4 ||
+        options.some(value => !value)
+      ) {
         return res.status(400).json({
           message: `Question ${i + 1}: provide a question and four options.`
         });
       }
 
-      if (!Number.isInteger(correctAnswer) || correctAnswer < 0 || correctAnswer > 3) {
+      if (
+        !Number.isInteger(correctAnswer) ||
+        correctAnswer < 0 ||
+        correctAnswer > 3
+      ) {
         return res.status(400).json({
           message: `Question ${i + 1}: select the correct option.`
         });
       }
 
-      questions.push({ id: crypto.randomUUID(), text, options, correctAnswer });
+      questions.push({
+        id: crypto.randomUUID(),
+        text,
+        options,
+        correctAnswer
+      });
     }
 
     const quiz = {
-      id: crypto.randomUUID(), title, subject, course, branch,
+      id: crypto.randomUUID(),
+      title,
+      subject,
+      course,
+      branch,
       semester: Number(normalizeSemester(semester)),
-      questions, published: false,
+      questions,
+      published: false,
       createdBy: req.user.id,
       createdByName: req.user.name,
       createdAt: new Date().toISOString()
@@ -618,31 +884,54 @@ app.post("/api/quizzes", authenticate, requireTeacher, async (req, res) => {
     });
   } catch (error) {
     console.error("Create quiz error:", error.message);
-    res.status(500).json({ message: "Unable to create quiz." });
+    res.status(500).json({
+      message: "Unable to create quiz."
+    });
   }
 });
 
 /* PUBLISH QUIZ */
-app.patch("/api/quizzes/:id/publish", authenticate, requireTeacher, async (req, res) => {
-  try {
-    const db = await readDB();
-    const quiz = db.quizzes.find(item => String(item.id) === String(req.params.id));
+app.patch(
+  "/api/quizzes/:id/publish",
+  authenticate,
+  requireTeacher,
+  async (req, res) => {
+    try {
+      const db = await readDB();
 
-    if (!quiz) return res.status(404).json({ message: "Quiz not found." });
-    if (!Array.isArray(quiz.questions) || quiz.questions.length === 0) {
-      return res.status(400).json({ message: "Add at least one question before publishing." });
+      const quiz = db.quizzes.find(
+        item => String(item.id) === String(req.params.id)
+      );
+
+      if (!quiz) {
+        return res.status(404).json({
+          message: "Quiz not found."
+        });
+      }
+
+      if (!Array.isArray(quiz.questions) || quiz.questions.length === 0) {
+        return res.status(400).json({
+          message: "Add at least one question before publishing."
+        });
+      }
+
+      quiz.published = true;
+      quiz.publishedAt = new Date().toISOString();
+
+      await writeDB(db);
+
+      res.json({
+        message: "Quiz published successfully.",
+        quiz: publicQuiz(quiz)
+      });
+    } catch (error) {
+      console.error("Publish quiz error:", error.message);
+      res.status(500).json({
+        message: "Unable to publish quiz."
+      });
     }
-
-    quiz.published = true;
-    quiz.publishedAt = new Date().toISOString();
-    await writeDB(db);
-
-    res.json({ message: "Quiz published successfully.", quiz: publicQuiz(quiz) });
-  } catch (error) {
-    console.error("Publish quiz error:", error.message);
-    res.status(500).json({ message: "Unable to publish quiz." });
   }
-});
+);
 
 /* LIST QUIZZES */
 app.get("/api/quizzes", authenticate, async (req, res) => {
@@ -651,16 +940,30 @@ app.get("/api/quizzes", authenticate, async (req, res) => {
     let quizzes = db.quizzes;
 
     if (norm(req.user.role) === "student") {
-      quizzes = quizzes.filter(quiz => quiz.published !== false && studentMatchesItem(quiz, req.user));
+      quizzes = quizzes.filter(
+        quiz =>
+          quiz.published !== false &&
+          studentMatchesItem(quiz, req.user)
+      );
     } else if (norm(req.user.role) !== "teacher") {
-      return res.status(403).json({ message: "Access denied." });
+      return res.status(403).json({
+        message: "Access denied."
+      });
     }
 
-    quizzes.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
-    res.json({ quizzes: quizzes.map(quiz => publicQuiz(quiz)) });
+    quizzes.sort(
+      (a, b) =>
+        new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
+    );
+
+    res.json({
+      quizzes: quizzes.map(quiz => publicQuiz(quiz))
+    });
   } catch (error) {
     console.error("Load quizzes error:", error.message);
-    res.status(500).json({ message: "Unable to load quizzes." });
+    res.status(500).json({
+      message: "Unable to load quizzes."
+    });
   }
 });
 
@@ -668,117 +971,195 @@ app.get("/api/quizzes", authenticate, async (req, res) => {
 app.get("/api/quizzes/:id", authenticate, async (req, res) => {
   try {
     const db = await readDB();
-    const quiz = db.quizzes.find(item => String(item.id) === String(req.params.id));
 
-    if (!quiz) return res.status(404).json({ message: "Quiz not found." });
+    const quiz = db.quizzes.find(
+      item => String(item.id) === String(req.params.id)
+    );
+
+    if (!quiz) {
+      return res.status(404).json({
+        message: "Quiz not found."
+      });
+    }
 
     if (!["student", "teacher"].includes(norm(req.user.role))) {
-      return res.status(403).json({ message: "Access denied." });
+      return res.status(403).json({
+        message: "Access denied."
+      });
     }
 
-    if (norm(req.user.role) === "student" && quiz.published === false) {
-      return res.status(403).json({ message: "This quiz has not been published yet." });
+    if (
+      norm(req.user.role) === "student" &&
+      quiz.published === false
+    ) {
+      return res.status(403).json({
+        message: "This quiz has not been published yet."
+      });
     }
 
-    if (norm(req.user.role) === "student" && !studentMatchesItem(quiz, req.user)) {
+    if (
+      norm(req.user.role) === "student" &&
+      !studentMatchesItem(quiz, req.user)
+    ) {
       return res.status(403).json({
         message: "This quiz is not assigned to your course and semester."
       });
     }
 
-    res.json({ quiz: publicQuiz(quiz) });
+    res.json({
+      quiz: publicQuiz(quiz)
+    });
   } catch (error) {
     console.error("Load quiz error:", error.message);
-    res.status(500).json({ message: "Unable to load quiz." });
+    res.status(500).json({
+      message: "Unable to load quiz."
+    });
   }
 });
 
 /* DELETE QUIZ */
-app.delete("/api/quizzes/:id", authenticate, requireTeacher, async (req, res) => {
-  try {
-    const db = await readDB();
-    const index = db.quizzes.findIndex(item => String(item.id) === String(req.params.id));
+app.delete(
+  "/api/quizzes/:id",
+  authenticate,
+  requireTeacher,
+  async (req, res) => {
+    try {
+      const db = await readDB();
 
-    if (index === -1) return res.status(404).json({ message: "Quiz not found." });
+      const index = db.quizzes.findIndex(
+        item => String(item.id) === String(req.params.id)
+      );
 
-    db.quizzes.splice(index, 1);
-    db.quizResults = db.quizResults.filter(result => String(result.quizId) !== String(req.params.id));
-    await writeDB(db);
+      if (index === -1) {
+        return res.status(404).json({
+          message: "Quiz not found."
+        });
+      }
 
-    res.json({ message: "Quiz deleted successfully." });
-  } catch (error) {
-    console.error("Delete quiz error:", error.message);
-    res.status(500).json({ message: "Unable to delete quiz." });
-  }
-});
+      db.quizzes.splice(index, 1);
 
-/* SUBMIT QUIZ */
-app.post("/api/quizzes/:id/submit", authenticate, requireStudent, async (req, res) => {
-  try {
-    const db = await readDB();
-    const quiz = db.quizzes.find(item => String(item.id) === String(req.params.id));
+      db.quizResults = db.quizResults.filter(
+        result => String(result.quizId) !== String(req.params.id)
+      );
 
-    if (!quiz) return res.status(404).json({ message: "Quiz not found." });
-    if (quiz.published === false) {
-      return res.status(403).json({ message: "This quiz has not been published yet." });
-    }
-    if (!studentMatchesItem(quiz, req.user)) {
-      return res.status(403).json({
-        message: "This quiz is not assigned to your course and semester."
+      await writeDB(db);
+
+      res.json({
+        message: "Quiz deleted successfully."
+      });
+    } catch (error) {
+      console.error("Delete quiz error:", error.message);
+      res.status(500).json({
+        message: "Unable to delete quiz."
       });
     }
-
-    const submittedAnswers = req.body.answers;
-
-    if (!submittedAnswers || typeof submittedAnswers !== "object" || Array.isArray(submittedAnswers)) {
-      return res.status(400).json({ message: "Please submit your answers." });
-    }
-
-    let score = 0;
-
-    const answers = quiz.questions.map(question => {
-      const rawAnswer = submittedAnswers[question.id];
-      const selected = Number(rawAnswer);
-      const valid = rawAnswer !== undefined && rawAnswer !== null && rawAnswer !== "" &&
-        Number.isInteger(selected) && selected >= 0 && selected <= 3;
-      const isCorrect = valid && selected === Number(question.correctAnswer);
-
-      if (isCorrect) score++;
-
-      return {
-        questionId: question.id,
-        selectedAnswer: valid ? selected : null,
-        correctAnswer: Number(question.correctAnswer),
-        isCorrect
-      };
-    });
-
-    const result = {
-      id: crypto.randomUUID(),
-      quizId: quiz.id,
-      quizTitle: quiz.title,
-      subject: quiz.subject,
-      studentId: req.user.id,
-      studentName: req.user.name,
-      course: req.user.course,
-      branch: req.user.branch || "",
-      semester: req.user.semester,
-      totalQuestions: quiz.questions.length,
-      score,
-      percentage: Math.round((score / quiz.questions.length) * 100),
-      answers,
-      submittedAt: new Date().toISOString()
-    };
-
-    db.quizResults.push(result);
-    await writeDB(db);
-
-    res.status(201).json({ message: "Quiz submitted successfully.", result });
-  } catch (error) {
-    console.error("Submit quiz error:", error.message);
-    res.status(500).json({ message: "Unable to submit quiz." });
   }
-});
+);
+
+/* SUBMIT QUIZ */
+app.post(
+  "/api/quizzes/:id/submit",
+  authenticate,
+  requireStudent,
+  async (req, res) => {
+    try {
+      const db = await readDB();
+
+      const quiz = db.quizzes.find(
+        item => String(item.id) === String(req.params.id)
+      );
+
+      if (!quiz) {
+        return res.status(404).json({
+          message: "Quiz not found."
+        });
+      }
+
+      if (quiz.published === false) {
+        return res.status(403).json({
+          message: "This quiz has not been published yet."
+        });
+      }
+
+      if (!studentMatchesItem(quiz, req.user)) {
+        return res.status(403).json({
+          message: "This quiz is not assigned to your course and semester."
+        });
+      }
+
+      const submittedAnswers = req.body.answers;
+
+      if (
+        !submittedAnswers ||
+        typeof submittedAnswers !== "object" ||
+        Array.isArray(submittedAnswers)
+      ) {
+        return res.status(400).json({
+          message: "Please submit your answers."
+        });
+      }
+
+      let score = 0;
+
+      const answers = quiz.questions.map(question => {
+        const rawAnswer = submittedAnswers[question.id];
+        const selected = Number(rawAnswer);
+
+        const valid =
+          rawAnswer !== undefined &&
+          rawAnswer !== null &&
+          rawAnswer !== "" &&
+          Number.isInteger(selected) &&
+          selected >= 0 &&
+          selected <= 3;
+
+        const isCorrect =
+          valid && selected === Number(question.correctAnswer);
+
+        if (isCorrect) score++;
+
+        return {
+          questionId: question.id,
+          selectedAnswer: valid ? selected : null,
+          correctAnswer: Number(question.correctAnswer),
+          isCorrect
+        };
+      });
+
+      const result = {
+        id: crypto.randomUUID(),
+        quizId: quiz.id,
+        quizTitle: quiz.title,
+        subject: quiz.subject,
+        studentId: req.user.id,
+        studentName: req.user.name,
+        course: req.user.course,
+        branch: req.user.branch || "",
+        semester: req.user.semester,
+        totalQuestions: quiz.questions.length,
+        score,
+        percentage: Math.round(
+          (score / quiz.questions.length) * 100
+        ),
+        answers,
+        submittedAt: new Date().toISOString()
+      };
+
+      db.quizResults.push(result);
+      await writeDB(db);
+
+      res.status(201).json({
+        message: "Quiz submitted successfully.",
+        result
+      });
+    } catch (error) {
+      console.error("Submit quiz error:", error.message);
+      res.status(500).json({
+        message: "Unable to submit quiz."
+      });
+    }
+  }
+);
 
 /* QUIZ RESULT HISTORY */
 app.get("/api/quiz-results", authenticate, async (req, res) => {
@@ -787,72 +1168,100 @@ app.get("/api/quiz-results", authenticate, async (req, res) => {
     let results = [];
 
     if (norm(req.user.role) === "student") {
-      results = db.quizResults.filter(result => String(result.studentId) === String(req.user.id));
+      results = db.quizResults.filter(
+        result => String(result.studentId) === String(req.user.id)
+      );
     } else if (norm(req.user.role) === "teacher") {
       results = db.quizResults;
+
       if (req.query.quizId) {
-        results = results.filter(result => String(result.quizId) === String(req.query.quizId));
+        results = results.filter(
+          result => String(result.quizId) === String(req.query.quizId)
+        );
       }
     } else {
-      return res.status(403).json({ message: "Access denied." });
+      return res.status(403).json({
+        message: "Access denied."
+      });
     }
 
-    results.sort((a, b) => new Date(b.submittedAt || 0) - new Date(a.submittedAt || 0));
+    results.sort(
+      (a, b) =>
+        new Date(b.submittedAt || 0) - new Date(a.submittedAt || 0)
+    );
+
     res.json({ results });
   } catch (error) {
     console.error("Load quiz results error:", error.message);
-    res.status(500).json({ message: "Unable to load quiz results." });
+    res.status(500).json({
+      message: "Unable to load quiz results."
+    });
   }
 });
 
 /* ADMIN DASHBOARD COUNTS */
-app.get("/api/admin/stats", authenticate, requireTeacher, async (req, res) => {
-  try {
-    const result = await pool.query(`
-      SELECT course, branch, semester, COUNT(*)::int AS total
-      FROM users
-      WHERE role = 'student'
-      GROUP BY course, branch, semester
-      ORDER BY course, branch, semester
-    `);
+app.get(
+  "/api/admin/stats",
+  authenticate,
+  requireTeacher,
+  async (req, res) => {
+    try {
+      const result = await pool.query(`
+        SELECT course, branch, semester, COUNT(*)::int AS total
+        FROM users
+        WHERE role = 'student'
+        GROUP BY course, branch, semester
+        ORDER BY course, branch, semester
+      `);
 
-    const totalResult = await pool.query(
-      "SELECT COUNT(*)::int AS total FROM users WHERE role = 'student'"
-    );
+      const totalResult = await pool.query(
+        "SELECT COUNT(*)::int AS total FROM users WHERE role = 'student'"
+      );
 
-    res.json({
-      totalStudents: totalResult.rows[0].total,
-      registrations: result.rows
-    });
-  } catch (error) {
-    console.error("Admin stats error:", error.message);
-    res.status(500).json({ message: "Unable to load dashboard statistics." });
+      res.json({
+        totalStudents: totalResult.rows[0].total,
+        registrations: result.rows
+      });
+    } catch (error) {
+      console.error("Admin stats error:", error.message);
+      res.status(500).json({
+        message: "Unable to load dashboard statistics."
+      });
+    }
   }
-});
+);
 
 /* API 404 */
 app.use("/api", (req, res) => {
-  res.status(404).json({ message: "API route not found." });
+  res.status(404).json({
+    message: "API route not found."
+  });
 });
 
 /* ERROR HANDLER */
 app.use((error, req, res, next) => {
   console.error("Server error:", error.message);
+
   if (res.headersSent) return next(error);
 
   if (error instanceof multer.MulterError) {
     return res.status(400).json({
-      message: error.code === "LIMIT_FILE_SIZE"
-        ? "PDF must be 15 MB or smaller."
-        : "File upload failed: " + error.message
+      message:
+        error.code === "LIMIT_FILE_SIZE"
+          ? "PDF must be 15 MB or smaller."
+          : "File upload failed: " + error.message
     });
   }
 
   if (error.message === "Only PDF files are allowed.") {
-    return res.status(400).json({ message: error.message });
+    return res.status(400).json({
+      message: error.message
+    });
   }
 
-  res.status(500).json({ message: "Unexpected server error." });
+  res.status(500).json({
+    message: "Unexpected server error."
+  });
 });
 
 /* START SERVER */
